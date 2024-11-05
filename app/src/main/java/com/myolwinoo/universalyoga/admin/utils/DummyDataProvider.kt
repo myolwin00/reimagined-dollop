@@ -42,17 +42,17 @@ object DummyDataProvider {
 
             courses.add(
                 YogaCourse(
-                    id,
-                    dayOfWeek,
-                    time,
-                    capacity,
-                    duration,
-                    pricePerClass,
-                    typeOfClass,
-                    description,
-                    difficultyLevel,
-                    cancellationPolicy,
-                    targetAudience
+                    id = id,
+                    dayOfWeek = dayOfWeek,
+                    time = time,
+                    capacity = capacity,
+                    duration = duration.toString(),
+                    pricePerClass = pricePerClass,
+                    typeOfClass = typeOfClass,
+                    description = description,
+                    difficultyLevel = difficultyLevel,
+                    cancellationPolicy = cancellationPolicy,
+                    targetAudience = targetAudience
                 )
             )
         }

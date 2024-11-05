@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.myolwinoo.universalyoga.admin.features
+package com.myolwinoo.universalyoga.admin.features.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -41,16 +40,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
+import kotlinx.serialization.Serializable
+
+@Serializable
+data object HomeRoute
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    viewModel: HomeViewModel = viewModel(),
+    onCreateCourseClick: () -> Unit
+) {
 
     val listState = rememberLazyListState()
     val expandedFab = remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
-    val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory())
-    val courses = viewModel.courses.collectAsStateWithLifecycle()
+    val courses = viewModel.courses.collectAsStateWithLifecycle(emptyList())
 
     Scaffold(
         modifier = Modifier
@@ -77,7 +82,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = {},
+                onClick = onCreateCourseClick,
                 expanded = expandedFab.value,
                 icon = { Icon(painterResource(R.drawable.ic_add), "Create Button") },
                 text = { Text(text = "Create") },

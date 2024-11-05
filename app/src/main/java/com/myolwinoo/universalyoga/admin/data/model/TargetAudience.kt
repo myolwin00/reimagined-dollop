@@ -9,7 +9,8 @@ enum class TargetAudience(val displayName: String) {
     BEGINNERS("Beginners"),
     ADVANCED_PRACTITIONERS("Advanced Practitioners"),
     PRENATAL("Prenatal"),
-    CORPORATE_GROUPS("Corporate Groups");
+    CORPORATE_GROUPS("Corporate Groups"),
+    ALL("All");
 
     companion object {
         fun getDisplayNames(): List<String> = entries.map { it.displayName }

@@ -37,16 +37,31 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
+import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 import kotlinx.serialization.Serializable
 
 @Serializable
 data object HomeRoute
 
+fun NavGraphBuilder.homeScreen(
+    repo: YogaRepository,
+    onCreateCourseClick: () -> Unit,
+) {
+    composable<HomeRoute> {
+        Screen(
+            viewModel = viewModel(factory = HomeViewModel.Factory(repo)),
+            onCreateCourseClick = onCreateCourseClick
+        )
+    }
+}
+
 @Composable
-fun HomeScreen(
+private fun Screen(
     viewModel: HomeViewModel = viewModel(),
     onCreateCourseClick: () -> Unit
 ) {
@@ -89,7 +104,9 @@ fun HomeScreen(
             )
         }
     ) { innerPadding ->
-        Box {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
             LazyColumn(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -104,6 +121,13 @@ fun HomeScreen(
                 ) {
                     CourseItem(course = it)
                 }
+            }
+
+            if (courses.value.isEmpty()) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "No course available! Start by creating one."
+                )
             }
         }
     }

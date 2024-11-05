@@ -42,6 +42,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.myolwinoo.universalyoga.admin.R
@@ -56,6 +57,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data object CreateCourseRoute
+
+fun NavController.navigateToCreateCourse() {
+    navigate(CreateCourseRoute)
+}
 
 fun NavGraphBuilder.createCourseScreen(
     repo: YogaRepository,

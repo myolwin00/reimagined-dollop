@@ -4,10 +4,14 @@ import com.myolwinoo.universalyoga.admin.data.model.CancellationPolicy
 import com.myolwinoo.universalyoga.admin.data.model.DayOfWeek
 import com.myolwinoo.universalyoga.admin.data.model.DifficultyLevel
 import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
+import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Random
 import java.util.UUID
+import kotlin.text.format
 
 /**
  * A data provider that generates dummy yoga course data for development and testing purposes.
@@ -40,6 +44,8 @@ object DummyDataProvider {
             val cancellationPolicy = CancellationPolicy.entries[random.nextInt(CancellationPolicy.entries.size)]
             val targetAudience = TargetAudience.entries[random.nextInt(TargetAudience.entries.size)]
 
+            val classes = generateSampleYogaClasses()
+
             courses.add(
                 YogaCourse(
                     id = id,
@@ -52,11 +58,48 @@ object DummyDataProvider {
                     description = description,
                     difficultyLevel = difficultyLevel,
                     cancellationPolicy = cancellationPolicy,
-                    targetAudience = targetAudience
+                    targetAudience = targetAudience,
+                    classes = classes
                 )
             )
         }
 
         return courses
     }
+}
+
+/**
+ * Generates a list of sample yoga classes.
+ *
+ * @return A list of [YogaClass] objects representing sample yoga classes.
+ */
+fun generateSampleYogaClasses(): List<YogaClass> {
+    val classes = mutableListOf<YogaClass>()
+    val random = Random()
+    val teachers = listOf("Amy", "John", "Sarah", "David")
+
+    for (i in 1..4) {
+        val id = UUID.randomUUID().toString()
+        val date = "2023-12-19"
+        val teacher = teachers[random.nextInt(teachers.size)]
+        val comment = listOf(
+            "Great class!",
+            "Relaxing and rejuvenating.",
+            "Challenging but rewarding.",
+            "Loved the flow."
+        )[random.nextInt(4)]
+
+        classes.add(
+            YogaClass(
+                id = id,
+                date = date,
+                teacherName = teacher,
+                teacherId = "",
+                courseId = "",
+                comment = comment
+            )
+        )
+    }
+
+    return classes
 }

@@ -7,7 +7,10 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [
-        YogaCourseEntity::class
+        YogaCourseEntity::class,
+        YogaClassEntity::class,
+        YogaTeacherEntity::class,
+        YogaClassTeacherCrossRef::class
     ],
     version = 1
 )
@@ -18,9 +21,9 @@ abstract class YogaDatabase : RoomDatabase() {
         private const val DATABASE_NAME = "yoga_db"
 
         fun getInstance(applicationContext: Context): YogaDatabase {
-            return Room.inMemoryDatabaseBuilder(
+            return Room.databaseBuilder(
                 applicationContext,
-                YogaDatabase::class.java, /*DATABASE_NAME*/
+                YogaDatabase::class.java, DATABASE_NAME
             ).build()
         }
     }

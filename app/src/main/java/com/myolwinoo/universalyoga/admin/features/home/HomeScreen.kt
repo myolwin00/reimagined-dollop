@@ -2,6 +2,9 @@
 
 package com.myolwinoo.universalyoga.admin.features.home
 
+import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,23 +19,28 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,8 +48,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.myolwinoo.universalyoga.admin.R
+import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
+import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 import kotlinx.serialization.Serializable
 
@@ -51,35 +61,41 @@ data object HomeRoute
 fun NavGraphBuilder.homeScreen(
     repo: YogaRepository,
     onCreateCourseClick: () -> Unit,
+    onEditCourse: (courseId: String) -> Unit,
+    onManageClasses: (courseId: String) -> Unit
 ) {
     composable<HomeRoute> {
+        val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(repo))
+        val courses = viewModel.courses.collectAsStateWithLifecycle(emptyList())
         Screen(
-            viewModel = viewModel(factory = HomeViewModel.Factory(repo)),
-            onCreateCourseClick = onCreateCourseClick
+            courses = courses.value,
+            onCreateCourseClick = onCreateCourseClick,
+            onEditCourse = onEditCourse,
+            onManageClasses = onManageClasses
         )
     }
 }
 
 @Composable
 private fun Screen(
-    viewModel: HomeViewModel = viewModel(),
-    onCreateCourseClick: () -> Unit
+    courses: List<YogaCourse>,
+    onCreateCourseClick: () -> Unit,
+    onEditCourse: (courseId: String) -> Unit,
+    onManageClasses: (courseId: String) -> Unit
 ) {
 
     val listState = rememberLazyListState()
     val expandedFab = remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
-    val courses = viewModel.courses.collectAsStateWithLifecycle(emptyList())
-
     Scaffold(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             .fillMaxSize(),
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f)
                 ),
                 title = {
@@ -116,14 +132,18 @@ private fun Screen(
                 )
             ) {
                 items(
-                    items = courses.value,
+                    items = courses,
                     key = { it.id }
                 ) {
-                    CourseItem(course = it)
+                    CourseItem(
+                        course = it,
+                        onEditCourse = onEditCourse,
+                        onManageClasses = onManageClasses
+                    )
                 }
             }
 
-            if (courses.value.isEmpty()) {
+            if (courses.isEmpty()) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),
                     text = "No course available! Start by creating one."
@@ -137,7 +157,9 @@ private fun Screen(
 @Composable
 private fun CourseItem(
     modifier: Modifier = Modifier,
-    course: YogaCourse
+    course: YogaCourse,
+    onEditCourse: (courseId: String) -> Unit,
+    onManageClasses: (courseId: String) -> Unit
 ) {
     Card(
         modifier = modifier
@@ -204,14 +226,131 @@ private fun CourseItem(
                     Text(text = course.capacity.toString())
                 }
             }
+
+            YogaClasses(
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth(),
+                yogaClasses = course.classes,
+                onSeeMore = { onManageClasses(course.id) }
+            )
+
+            Row(
+                modifier = Modifier.padding(top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    modifier = Modifier
+                        .weight(1f),
+                    onClick = { onEditCourse(course.id) }
+                ) {
+                    Text(
+                        text = "Edit course",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                OutlinedButton(
+                    modifier = Modifier
+                        .weight(1f),
+                    onClick = { onManageClasses(course.id) }
+                ) {
+                    Text(
+                        text = "Manage classes",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Composable
+fun YogaClasses(
+    modifier: Modifier = Modifier,
+    yogaClasses: List<YogaClass>,
+    onSeeMore: () -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        if (yogaClasses.isEmpty()) {
+            Text(
+                text = "No Classes yet.",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        } else {
+            var expanded by remember { mutableStateOf(false) }
+            Row(
+                modifier = Modifier.clickable { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = if (expanded) "Hide Classes" else "Show Classes",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                IconButton(
+                    modifier = Modifier.size(24.dp),
+                    onClick = { expanded = !expanded }
+                ) {
+                    Icon(
+                        painter = painterResource(if (expanded) R.drawable.ic_up else R.drawable.ic_down),
+                        contentDescription = "expand button"
+                    )
+                }
+            }
+            if (expanded) {
+                Spacer(Modifier.size(8.dp))
+            }
+            AnimatedVisibility(expanded) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    yogaClasses.take(4).forEach {
+                        Text(
+                            text = "${it.date} by ${it.teacherName}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                    if (yogaClasses.size > 4) {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .clickable { onSeeMore() }
+                            ,
+                            text = "See More",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun CourseItemPreview() {
-    CourseItem(
-        course = DummyDataProvider.dummyYogaCourses.first()
-    )
+    UniversalYogaTheme {
+        CourseItem(
+            course = DummyDataProvider.dummyYogaCourses.first(),
+            onEditCourse = {},
+            onManageClasses = {}
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ScreenPreview() {
+    UniversalYogaTheme {
+        Screen(
+            courses = DummyDataProvider.dummyYogaCourses,
+            onCreateCourseClick = {},
+            onEditCourse = {},
+            onManageClasses = {}
+        )
+    }
 }

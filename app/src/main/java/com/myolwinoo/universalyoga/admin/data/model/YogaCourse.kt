@@ -16,4 +16,6 @@ data class YogaCourse(
     val targetAudience: TargetAudience,
 
     val cancellationPolicy: CancellationPolicy,
+
+    val classes: List<YogaClass>
 )

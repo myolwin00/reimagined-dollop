@@ -47,6 +47,7 @@ class CreateCourseScreenViewModel(
                 difficultyLevel = difficulty.value,
                 cancellationPolicy =cancellationPolicy.value,
                 targetAudience = targetAudience.value,
+                classes = emptyList()
             )
             repo.createCourse(course)
                 .onSuccess { navigateToHome.value = true }

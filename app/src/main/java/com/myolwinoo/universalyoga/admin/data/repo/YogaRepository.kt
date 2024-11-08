@@ -21,9 +21,13 @@ class YogaRepository(
             .map { it.map(::mapYogaCourse) }
     }
 
-    fun getCourse(courseId: String): Flow<YogaCourse?> {
-        return yogaDao.getCourse(courseId)
+    fun getCourseDetails(courseId: String): Flow<YogaCourse?> {
+        return yogaDao.getCourseDetails(courseId)
             .map { it?.let(::mapYogaCourse) }
+    }
+
+    suspend fun getCourse(courseId: String): YogaCourse? {
+        return yogaDao.getCourse(courseId)?.let(::mapYogaCourse)
     }
 
     fun getTeacherNameSuggestions(teacherName: String): Flow<List<String>> {
@@ -140,6 +144,23 @@ class YogaRepository(
             cancellationPolicy = entity.course.cancellationPolicy,
             targetAudience = entity.course.targetAudience,
             classes = entity.yogaClasses.map(::mapYogaClass)
+        )
+    }
+
+    fun mapYogaCourse(entity: YogaCourseEntity): YogaCourse {
+        return YogaCourse(
+            id = entity.id,
+            dayOfWeek = entity.dayOfWeek,
+            time = entity.time,
+            capacity = entity.capacity,
+            duration = entity.duration,
+            pricePerClass = entity.pricePerClass,
+            typeOfClass = entity.typeOfClass,
+            description = entity.description,
+            difficultyLevel = entity.difficultyLevel,
+            cancellationPolicy = entity.cancellationPolicy,
+            targetAudience = entity.targetAudience,
+            classes = emptyList()
         )
     }
 }

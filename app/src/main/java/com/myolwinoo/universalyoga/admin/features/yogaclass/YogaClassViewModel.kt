@@ -14,7 +14,7 @@ class YogaClassViewModel(
     private val repo: YogaRepository
 ) : ViewModel() {
 
-    val course = repo.getCourse(courseId)
+    val course = repo.getCourseDetails(courseId)
 
     fun createClass() {
         viewModelScope.launch {

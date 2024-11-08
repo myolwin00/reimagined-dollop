@@ -143,10 +143,6 @@ private fun Screen(
 
 }
 
-
-
-
-
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ScreenPreview() {

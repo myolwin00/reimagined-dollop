@@ -34,7 +34,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.CancellationPolicy
 import com.myolwinoo.universalyoga.admin.data.model.DayOfWeek
@@ -56,10 +56,10 @@ import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object CreateCourseRoute
+data class CreateCourseRoute(val courseId: String? = null)
 
-fun NavController.navigateToCreateCourse() {
-    navigate(CreateCourseRoute)
+fun NavController.navigateToCreateCourse(courseId: String? = null) {
+    navigate(CreateCourseRoute(courseId))
 }
 
 fun NavGraphBuilder.createCourseScreen(
@@ -68,10 +68,13 @@ fun NavGraphBuilder.createCourseScreen(
 ) {
 
     composable<CreateCourseRoute> {
+        val route = it.toRoute<CreateCourseRoute>()
         val viewModel: CreateCourseScreenViewModel = viewModel(
-            factory = CreateCourseScreenViewModel.Factory(repo)
+            factory = CreateCourseScreenViewModel.Factory(
+                repo = repo,
+                courseId = route.courseId
+            )
         )
-        val keyboardController = LocalSoftwareKeyboardController.current
 
         LaunchedEffect(viewModel.navigateToHome.value) {
             if (viewModel.navigateToHome.value) {
@@ -80,6 +83,7 @@ fun NavGraphBuilder.createCourseScreen(
         }
 
         Screen(
+            courseId = route.courseId,
             onBack = onBack,
             onSave = viewModel::create,
             selectedDayOfWeek = viewModel.selectedDayOfWeek.value,
@@ -108,6 +112,7 @@ fun NavGraphBuilder.createCourseScreen(
 
 @Composable
 private fun Screen(
+    courseId: String?,
     selectedDayOfWeek: DayOfWeek,
     onDayOfWeekSelected: (DayOfWeek) -> Unit,
     duration: TextFieldValue,
@@ -144,7 +149,7 @@ private fun Screen(
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f)
                 ),
                 title = {
-                    Text("Create Course")
+                    Text(courseId?.let { "Edit Course" } ?: "Create Course")
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -161,8 +166,6 @@ private fun Screen(
             Column(
                 modifier = Modifier
                     .padding(
-                        start = 20.dp,
-                        end = 20.dp,
                         top = 0.dp,
                         bottom = innerPadding.calculateBottomPadding()
                     )
@@ -174,7 +177,12 @@ private fun Screen(
                 )
                 Spacer(Modifier.size(8.dp))
                 ScheduleSection(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(
+                            start = 20.dp,
+                            end = 20.dp
+                        )
+                        .fillMaxWidth(),
                     selectedDayOfWeek = selectedDayOfWeek,
                     onDayOfWeekSelected = onDayOfWeekSelected,
                     duration = duration,
@@ -189,7 +197,12 @@ private fun Screen(
                 )
                 Spacer(Modifier.size(12.dp))
                 DetailsSection(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(
+                            start = 20.dp,
+                            end = 20.dp
+                        )
+                        .fillMaxWidth(),
                     description = description,
                     onDescriptionChange = onDescriptionChange,
                     classType = classType,
@@ -206,7 +219,12 @@ private fun Screen(
                 )
                 Spacer(Modifier.size(12.dp))
                 PricingSection(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .padding(
+                            start = 20.dp,
+                            end = 20.dp
+                        )
+                        .fillMaxWidth(),
                     capacity = capacity,
                     onCapacityChange = onCapacityChange,
                     price = price,
@@ -240,7 +258,7 @@ private fun Screen(
                     onClick = onSave
                 ) {
                     Text(
-                        text = "Create",
+                        text = courseId?.let { "Update" } ?: "Create",
                         fontWeight = FontWeight.Bold
                     )
                 }

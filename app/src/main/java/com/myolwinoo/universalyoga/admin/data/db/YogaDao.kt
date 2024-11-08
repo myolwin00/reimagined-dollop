@@ -16,7 +16,10 @@ interface YogaDao {
 
     @Transaction
     @Query("select * from yoga_courses where id = :id")
-    fun getCourse(id: String): Flow<YogaCourseDetails?>
+    fun getCourseDetails(id: String): Flow<YogaCourseDetails?>
+
+    @Query("select * from yoga_courses where id = :id")
+    suspend fun getCourse(id: String): YogaCourseEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCourse(vararg entity: YogaCourseEntity)

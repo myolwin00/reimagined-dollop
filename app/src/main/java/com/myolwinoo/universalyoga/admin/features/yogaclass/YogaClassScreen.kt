@@ -120,7 +120,9 @@ private fun Screen(
     ) { innerPadding ->
         course?.let {
             Box(
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
             ) {
                 Column {
                     Card(
@@ -191,37 +193,39 @@ private fun Screen(
                         }
                     }
 
-                    LazyColumn(
-                        modifier = Modifier.padding(top = 16.dp),
-                        state = listState,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(
-                            start = 20.dp,
-                            end = 20.dp,
-                            bottom = innerPadding.calculateBottomPadding() + 100.dp
-                        )
-                    ) {
-                        stickyHeader {
-                            Text(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
-                                    .background(MaterialTheme.colorScheme.background),
-                                text = "Schedules",
-                                style = MaterialTheme.typography.titleLarge
+                    if (course.classes.isNotEmpty()) {
+                        LazyColumn(
+                            modifier = Modifier.padding(top = 16.dp),
+                            state = listState,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(
+                                start = 20.dp,
+                                end = 20.dp,
+                                bottom = innerPadding.calculateBottomPadding() + 100.dp
                             )
-                        }
-                        items(
-                            items = course.classes,
-                            key = { it.id }
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+                            stickyHeader {
                                 Text(
-                                    text = "${it.date} by ${it.teacherName}",
-                                    style = MaterialTheme.typography.bodyLarge
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp)
+                                        .background(MaterialTheme.colorScheme.background),
+                                    text = "Schedules",
+                                    style = MaterialTheme.typography.titleLarge
                                 )
+                            }
+                            items(
+                                items = course.classes,
+                                key = { it.id }
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "${it.date} by ${it.teacherName}",
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
                             }
                         }
                     }

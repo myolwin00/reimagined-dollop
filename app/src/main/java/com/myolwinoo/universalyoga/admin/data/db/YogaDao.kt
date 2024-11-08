@@ -45,4 +45,7 @@ interface YogaDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertYogaClassTeacher(vararg entity: YogaClassTeacherCrossRef)
+
+    @Query("select * from yoga_teachers where name like '%' || :query || '%'")
+    fun searchTeacher(query: String): Flow<List<YogaTeacherEntity>>
 }

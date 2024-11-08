@@ -26,6 +26,11 @@ class YogaRepository(
             .map { it?.let(::mapYogaCourse) }
     }
 
+    fun getTeacherNameSuggestions(teacherName: String): Flow<List<String>> {
+        return yogaDao.searchTeacher(teacherName)
+            .map { it.map { teacher -> teacher.name } }
+    }
+
     suspend fun createCourse(
         course: YogaCourse
     ): Result<Unit> {

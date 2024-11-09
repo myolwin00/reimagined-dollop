@@ -13,17 +13,15 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -43,6 +41,7 @@ class SearchViewModel(
         .debounce(SEARCH_DEBOUNCE_MILLIS)
         .distinctUntilChanged()
         .flatMapLatest { if (it.isBlank()) flowOf(emptyList()) else repo.getTeacherNameSuggestions(it) }
+        .map { it.map { (_, name) -> name } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     val searchResult: StateFlow<List<YogaCourse>> = combine(
@@ -51,15 +50,16 @@ class SearchViewModel(
             .distinctUntilChanged(),
         allCourses
     ) { query, courses ->
-        Log.i("SearchViewModel", "query: $query")
         if (query.isBlank()) {
             emptyList()
         } else {
             courses.filter {
-                it.classes.all { yogaClass ->
+                it.classes.any { yogaClass ->
                     yogaClass.teacherName.contains(query, true)
                 }
             }
+        }.also {
+            Log.d("SearchViewModel", "searchResult: $it")
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 

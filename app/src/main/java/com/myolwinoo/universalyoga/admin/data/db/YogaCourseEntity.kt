@@ -4,10 +4,10 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.myolwinoo.universalyoga.admin.data.model.CancellationPolicy
-import com.myolwinoo.universalyoga.admin.data.model.DayOfWeek
 import com.myolwinoo.universalyoga.admin.data.model.DifficultyLevel
 import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
+import kotlinx.datetime.DayOfWeek
 
 @Entity(tableName = "yoga_courses")
 data class YogaCourseEntity(

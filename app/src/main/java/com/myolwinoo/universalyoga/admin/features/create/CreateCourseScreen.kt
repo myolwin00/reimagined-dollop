@@ -50,13 +50,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.CancellationPolicy
-import com.myolwinoo.universalyoga.admin.data.model.DayOfWeek
 import com.myolwinoo.universalyoga.admin.data.model.DifficultyLevel
 import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import kotlinx.coroutines.delay
+import kotlinx.datetime.DayOfWeek
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -199,7 +199,9 @@ private fun Screen(
             }
         }
 
-        Box {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
             LazyColumn(
                 modifier = Modifier,
                 state = listState,
@@ -372,7 +374,7 @@ fun ScheduleSection(
                     value = duration,
                     onValueChange = onDurationChange,
                     suffix = { Text("min") },
-                    supportingText = { Text("Required") },
+                    supportingText = { Text("Required*") },
                     singleLine = true,
                     maxLines = 1,
                     label = { Text("Duration") },
@@ -490,7 +492,7 @@ fun PricingSection(
                     onValueChange = onCapacityChange,
                     suffix = { Text("person") },
                     label = { Text("Max Capacity") },
-                    supportingText = { Text("Required") },
+                    supportingText = { Text("Required*") },
                     singleLine = true,
                     maxLines = 1,
                     isError = inputError == CourseInputError.Capacity,
@@ -505,7 +507,7 @@ fun PricingSection(
                     label = { Text("Price") },
                     singleLine = true,
                     maxLines = 1,
-                    supportingText = { Text("Required") },
+                    supportingText = { Text("Required*") },
                     isError = inputError == CourseInputError.Price,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                 )

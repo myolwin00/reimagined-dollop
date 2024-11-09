@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface YogaDao {
 
+    // yoga courses
     @Transaction
     @Query("select * from yoga_courses")
     fun getAllCourses(): Flow<List<YogaCourseDetails>>
@@ -27,9 +28,13 @@ interface YogaDao {
     @Query("delete from yoga_courses where id = :id")
     suspend fun deleteCourse(id: String): Int
 
+    // yoga classes
     @Transaction
     @Query("select * from yoga_classes where courseid = :courseId")
     fun getClasses(courseId: String): Flow<List<YogaClassDetails>>
+
+    @Query("select * from yoga_classes where classId = :classId")
+    suspend fun getClass(classId: String): YogaClassDetails?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertClass(vararg entity: YogaClassEntity)
@@ -40,6 +45,7 @@ interface YogaDao {
     @Query("delete from yoga_classes where courseId = :courseId")
     suspend fun deleteCourseClass(courseId: String): Int
 
+    // yoga teachers
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTeacher(vararg entity: YogaTeacherEntity)
 
@@ -49,9 +55,13 @@ interface YogaDao {
     @Query("select * from yoga_teachers where name = :name")
     suspend fun findTeacherByName(name: String): YogaTeacherEntity?
 
+    @Query("select * from yoga_teachers where name like '%' || :query || '%'")
+    fun searchTeacher(query: String): Flow<List<YogaTeacherEntity>>
+
+    // yoga classes and teachers
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertYogaClassTeacher(vararg entity: YogaClassTeacherCrossRef)
 
-    @Query("select * from yoga_teachers where name like '%' || :query || '%'")
-    fun searchTeacher(query: String): Flow<List<YogaTeacherEntity>>
+    @Query("delete from yoga_class_teachers where classId = :classId")
+    suspend fun deleteYogaClassTeacher(classId: String): Int
 }

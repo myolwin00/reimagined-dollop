@@ -1,5 +1,7 @@
 package com.myolwinoo.universalyoga.admin.data.model
 
+import kotlinx.datetime.DayOfWeek
+
 data class YogaCourse(
     val id: String,
 

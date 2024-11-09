@@ -34,6 +34,8 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
+import java.time.format.TextStyle
+import java.util.Locale
 
 fun LazyListScope.courseList(
     courses: List<YogaCourse>,
@@ -119,7 +121,7 @@ private fun CourseItem(
                         painter = painterResource(R.drawable.ic_event),
                         contentDescription = "day icon"
                     )
-                    Text(text = course.dayOfWeek.displayName)
+                    Text(text = course.dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()))
                 }
 
                 Row(

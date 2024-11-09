@@ -30,9 +30,9 @@ class YogaRepository(
         return yogaDao.getCourse(courseId)?.let(::mapYogaCourse)
     }
 
-    fun getTeacherNameSuggestions(teacherName: String): Flow<List<String>> {
+    fun getTeacherNameSuggestions(teacherName: String): Flow<List<Pair<String, String>>> {
         return yogaDao.searchTeacher(teacherName)
-            .map { it.map { teacher -> teacher.name } }
+            .map { it.map { teacher -> teacher.teacherId to teacher.name } }
     }
 
     suspend fun createCourse(
@@ -68,13 +68,11 @@ class YogaRepository(
         yogaDao.deleteClass(classId)
     }
 
-    fun getYogaClasses(courseId: String): Flow<List<YogaClass>> {
-        return yogaDao.getClasses(courseId)
-            .map { it.map(::mapYogaClass) }
+    suspend fun getYogaClass(classId: String): YogaClass? {
+        return yogaDao.getClass(classId)?.let(::mapYogaClass)
     }
 
     suspend fun createYogaClass(yogaClass: YogaClass): Result<Unit> {
-
         val classEntity = YogaClassEntity(
             classId = yogaClass.id,
             date = yogaClass.date,
@@ -87,6 +85,7 @@ class YogaRepository(
                 teacherName = yogaClass.teacherName
             )
             yogaDao.insertClass(classEntity)
+            yogaDao.deleteYogaClassTeacher(yogaClass.id)
             yogaDao.insertYogaClassTeacher(
                 YogaClassTeacherCrossRef(
                     classId = yogaClass.id,
@@ -99,7 +98,7 @@ class YogaRepository(
         }
     }
 
-    suspend fun saveTeacherIfNotExists(
+    private suspend fun saveTeacherIfNotExists(
         teacherId: String,
         teacherName: String
     ): String {
@@ -125,17 +124,6 @@ class YogaRepository(
             teacherId = classDetails.teachers.firstOrNull()?.teacherId.orEmpty(),
             teacherName = classDetails.teachers.firstOrNull()?.name.orEmpty(),
             courseId = classDetails.yogaClass.courseId
-        )
-    }
-
-    fun mapYogaClass(entity: YogaClassEntity): YogaClass {
-        return YogaClass(
-            id = entity.classId,
-            date = entity.date,
-            comment = entity.comment,
-            teacherId = "",
-            teacherName = "",
-            courseId = entity.courseId
         )
     }
 

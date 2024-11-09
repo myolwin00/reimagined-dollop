@@ -3,9 +3,6 @@
 package com.myolwinoo.universalyoga.admin.features.create
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.Interaction
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,8 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import com.myolwinoo.universalyoga.admin.R
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.myolwinoo.universalyoga.admin.features.common.InputClickInteractionSource
 import java.util.Calendar
 
 @Composable
@@ -44,24 +40,7 @@ internal fun CourseTimePicker(
     )
 
     val interactionSource = remember {
-        object : MutableInteractionSource {
-            override val interactions = MutableSharedFlow<Interaction>(
-                extraBufferCapacity = 16,
-                onBufferOverflow = BufferOverflow.DROP_OLDEST,
-            )
-
-            override suspend fun emit(interaction: Interaction) {
-                if (interaction is PressInteraction.Release) {
-                    showTimePicker = true
-                }
-
-                interactions.emit(interaction)
-            }
-
-            override fun tryEmit(interaction: Interaction): Boolean {
-                return interactions.tryEmit(interaction)
-            }
-        }
+        InputClickInteractionSource(onClick = { showTimePicker = true })
     }
 
     if (showTimePicker) {
@@ -72,9 +51,7 @@ internal fun CourseTimePicker(
             dismissButton = {
                 TextButton(onClick = {
                     showTimePicker = false
-                }) {
-                    Text("Dismiss")
-                }
+                }) { Text("Cancel") }
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -82,15 +59,9 @@ internal fun CourseTimePicker(
                     val min = timePickerState.minute.toString().padStart(2, '0')
                     onTimeSelected(TextFieldValue("$hour:$min"))
                     showTimePicker = false
-                }) {
-                    Text("OK")
-                }
+                }) { Text("OK") }
             },
-            text = {
-                TimePicker(
-                    state = timePickerState,
-                )
-            }
+            text = { TimePicker(state = timePickerState) }
         )
     }
 
@@ -104,7 +75,7 @@ internal fun CourseTimePicker(
         singleLine = true,
         interactionSource = interactionSource,
         label = { Text("Start Time") },
-        supportingText = { Text("Required") },
+        supportingText = { Text("Required*") },
         trailingIcon = {
             IconButton(onClick = { showTimePicker = true }) {
                 Icon(painterResource(R.drawable.ic_time), contentDescription = "Select Time")

@@ -14,6 +14,8 @@ import com.myolwinoo.universalyoga.admin.features.home.HomeRoute
 import com.myolwinoo.universalyoga.admin.features.home.homeScreen
 import com.myolwinoo.universalyoga.admin.features.search.navigateToSearch
 import com.myolwinoo.universalyoga.admin.features.search.searchScreen
+import com.myolwinoo.universalyoga.admin.features.yogaclass.create.createYogaClassScreen
+import com.myolwinoo.universalyoga.admin.features.yogaclass.create.navigateToCreateYogaClass
 import com.myolwinoo.universalyoga.admin.features.yogaclass.navigateToYogaClass
 import com.myolwinoo.universalyoga.admin.features.yogaclass.yogaClassScreen
 
@@ -75,6 +77,18 @@ fun YogaNavHost(
         )
 
         yogaClassScreen(
+            repo = repo,
+            onBack = navController::popBackStack,
+            onCreateClass = { navController.navigateToCreateYogaClass(it) },
+            onEditClass = { courseId, classId ->
+                navController.navigateToCreateYogaClass(
+                    courseId = courseId,
+                    classId = classId
+                )
+            }
+        )
+
+        createYogaClassScreen(
             repo = repo,
             onBack = navController::popBackStack
         )

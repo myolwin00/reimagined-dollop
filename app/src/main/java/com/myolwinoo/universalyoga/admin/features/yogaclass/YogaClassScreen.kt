@@ -56,6 +56,8 @@ import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 import kotlinx.serialization.Serializable
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Serializable
 data class YogaClassRoute(val courseId: String)
@@ -66,7 +68,9 @@ fun NavController.navigateToYogaClass(courseId: String) {
 
 fun NavGraphBuilder.yogaClassScreen(
     repo: YogaRepository,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onCreateClass: (courseId: String) -> Unit,
+    onEditClass: (courseId: String, classId: String) -> Unit,
 ) {
     composable<YogaClassRoute> {
         val route = it.toRoute<YogaClassRoute>()
@@ -76,7 +80,8 @@ fun NavGraphBuilder.yogaClassScreen(
         Screen(
             course = yogaCourse.value,
             onBack = onBack,
-            onCreateClass = viewModel::createClass,
+            onCreateClass = { onCreateClass(route.courseId) },
+            onEditClass = { onEditClass(route.courseId, it) },
 
             onDelete = viewModel::deleteClass,
             showConfirmDeleteId = viewModel.confirmDeleteId.value,
@@ -91,6 +96,7 @@ private fun Screen(
     course: YogaCourse?,
     onBack: () -> Unit,
     onCreateClass: () -> Unit,
+    onEditClass: (classId: String) -> Unit,
     onDelete: (classId: String) -> Unit,
     showConfirmDeleteId: String?,
     onShowConfirmDelete: (classId: String) -> Unit,
@@ -164,7 +170,7 @@ private fun Screen(
 
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
-                                text = course.description,
+                                text = course.description.ifBlank { "No description." },
                                 style = MaterialTheme.typography.bodyLarge
                             )
 
@@ -183,7 +189,7 @@ private fun Screen(
                                         painter = painterResource(R.drawable.ic_event),
                                         contentDescription = "day icon"
                                     )
-                                    Text(text = course.dayOfWeek.displayName)
+                                    Text(text = course.dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()))
                                 }
 
                                 Row(
@@ -230,13 +236,13 @@ private fun Screen(
                                         .fillMaxWidth()
                                         .background(MaterialTheme.colorScheme.background)
                                         .padding(bottom = 8.dp),
-                                    text = "Schedules (${course.classes.size})",
+                                    text = "Classes (${course.classes.size})",
                                     style = MaterialTheme.typography.titleLarge
                                 )
                             }
                             yogaClassList(
                                 yogaClasses = course.classes,
-                                onEditClass = {},
+                                onEditClass = onEditClass,
                                 onDeleteClass = onShowConfirmDelete
                             )
                         }
@@ -368,6 +374,7 @@ private fun ScreenPreview() {
             course = DummyDataProvider.dummyYogaCourses.first(),
             onBack = {},
             onCreateClass = {},
+            onEditClass = {},
             onDelete = {},
             showConfirmDeleteId = null,
             onShowConfirmDelete = {},

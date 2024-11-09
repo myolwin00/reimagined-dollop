@@ -5,10 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class YogaClassViewModel(
     private val courseId: String,
@@ -26,21 +24,6 @@ class YogaClassViewModel(
 
     fun hideConfirmDelete() {
         confirmDeleteId.value = null
-    }
-
-    fun createClass() {
-        viewModelScope.launch {
-            repo.createYogaClass(
-                YogaClass(
-                    id = UUID.randomUUID().toString(),
-                    date = "08/11/2014",
-                    courseId = courseId,
-                    teacherId = UUID.randomUUID().toString(),
-                    teacherName = "Tr.Phyu",
-                    comment = "Sample comment.",
-                )
-            )
-        }
     }
 
     fun deleteClass(classId: String) {

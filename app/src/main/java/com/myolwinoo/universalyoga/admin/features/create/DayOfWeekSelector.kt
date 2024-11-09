@@ -5,7 +5,6 @@ package com.myolwinoo.universalyoga.admin.features.create
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
@@ -17,7 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.myolwinoo.universalyoga.admin.data.model.DayOfWeek
+import kotlinx.datetime.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Composable
 internal fun DayOfWeekSelector(
@@ -36,7 +37,7 @@ internal fun DayOfWeekSelector(
             FilterChip(
                 onClick = { onDayOfWeekSelected(it) },
                 label = {
-                    Text(it.displayName)
+                    Text(it.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()))
                 },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer

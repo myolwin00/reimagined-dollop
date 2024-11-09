@@ -37,6 +37,9 @@ interface YogaDao {
     @Query("delete from yoga_classes where classId = :id")
     suspend fun deleteClass(id: String): Int
 
+    @Query("delete from yoga_classes where courseId = :courseId")
+    suspend fun deleteCourseClass(courseId: String): Int
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTeacher(vararg entity: YogaTeacherEntity)
 

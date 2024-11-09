@@ -39,7 +39,8 @@ fun LazyListScope.courseList(
     courses: List<YogaCourse>,
     expandClasses: Boolean = false,
     onEditCourse: (courseId: String) -> Unit,
-    onManageClasses: (courseId: String) -> Unit
+    onManageClasses: (courseId: String) -> Unit,
+    onDelete: (courseId: String) -> Unit,
 ) {
     items(
         items = courses,
@@ -49,7 +50,8 @@ fun LazyListScope.courseList(
             course = it,
             expandClasses = expandClasses,
             onEditCourse = onEditCourse,
-            onManageClasses = onManageClasses
+            onManageClasses = onManageClasses,
+            onDelete = onDelete
         )
     }
 }
@@ -60,7 +62,8 @@ private fun CourseItem(
     course: YogaCourse,
     expandClasses: Boolean = false,
     onEditCourse: (courseId: String) -> Unit,
-    onManageClasses: (courseId: String) -> Unit
+    onManageClasses: (courseId: String) -> Unit,
+    onDelete: (courseId: String) -> Unit,
 ) {
     Card(
         modifier = modifier
@@ -70,12 +73,28 @@ private fun CourseItem(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
+            Row(
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    modifier = Modifier
+                        .padding(end = 12.dp)
+                        .weight(1f),
+                    text = course.typeOfClass.displayName,
+                    style = MaterialTheme.typography.titleLarge
+                )
 
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = course.typeOfClass.displayName,
-                style = MaterialTheme.typography.titleLarge
-            )
+                IconButton(
+                    modifier = Modifier.size(24.dp),
+                    onClick = { onDelete(course.id) }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete),
+                        tint = MaterialTheme.colorScheme.error,
+                        contentDescription = "delete button"
+                    )
+                }
+            }
 
             Spacer(Modifier.size(8.dp))
 
@@ -240,7 +259,8 @@ private fun CourseItemPreview() {
         CourseItem(
             course = DummyDataProvider.dummyYogaCourses.first(),
             onEditCourse = {},
-            onManageClasses = {}
+            onManageClasses = {},
+            onDelete = {}
         )
     }
 }

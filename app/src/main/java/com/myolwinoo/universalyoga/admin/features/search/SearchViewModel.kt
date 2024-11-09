@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 private const val SEARCH_DEBOUNCE_MILLIS = 300L
 
@@ -62,9 +63,26 @@ class SearchViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
+    var confirmDeleteId = mutableStateOf<String?>(null)
+        private set
+
+    fun showConfirmDelete(id: String) {
+        confirmDeleteId.value = id
+    }
+
+    fun hideConfirmDelete() {
+        confirmDeleteId.value = null
+    }
+
     fun updateQuery(query: TextFieldValue) {
         searchQuery.value = query
         searchQueryFlow.value = query.text
+    }
+
+    fun deleteCourse(courseId: String) {
+        viewModelScope.launch {
+            repo.deleteCourse(courseId)
+        }
     }
 
     class Factory(

@@ -59,7 +59,7 @@ fun YogaNavHost(
             onCreateCourseClick = { navController.navigateToCreateCourse() },
             onEditCourse = { navController.navigateToCreateCourse(it) },
             onManageClasses = navController::navigateToYogaClass,
-            onNavigateToSearch = navController::navigateToSearch
+            onNavigateToSearch = navController::navigateToSearch,
         )
 
         searchScreen(

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -16,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -58,7 +61,12 @@ fun NavGraphBuilder.homeScreen(
             onCreateCourseClick = onCreateCourseClick,
             onEditCourse = onEditCourse,
             onManageClasses = onManageClasses,
-            onNavigateToSearch = onNavigateToSearch
+            onNavigateToSearch = onNavigateToSearch,
+            onDelete = viewModel::deleteCourse,
+
+            showConfirmDeleteId = viewModel.confirmDeleteId.value,
+            onShowConfirmDelete = viewModel::showConfirmDelete,
+            onHideConfirmDelete = viewModel::hideConfirmDelete
         )
     }
 }
@@ -69,7 +77,11 @@ private fun Screen(
     onCreateCourseClick: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onEditCourse: (courseId: String) -> Unit,
-    onManageClasses: (courseId: String) -> Unit
+    onManageClasses: (courseId: String) -> Unit,
+    onDelete: (courseId: String) -> Unit,
+    showConfirmDeleteId: String?,
+    onShowConfirmDelete: (courseId: String) -> Unit,
+    onHideConfirmDelete: () -> Unit
 ) {
 
     val listState = rememberLazyListState()
@@ -114,6 +126,34 @@ private fun Screen(
             )
         }
     ) { innerPadding ->
+        showConfirmDeleteId?.let { id ->
+            AlertDialog(
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete),
+                        contentDescription = "Delete Icon"
+                    )
+                },
+                title = { Text(text = "Confirm Delete") },
+                text = { Text(text = "Are you sure you want to delete this? This action cannot be undone.") },
+                onDismissRequest = { onHideConfirmDelete() },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            onDelete(id)
+                            onHideConfirmDelete()
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onHideConfirmDelete) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -128,7 +168,8 @@ private fun Screen(
                 courseList(
                     courses = courses,
                     onEditCourse = onEditCourse,
-                    onManageClasses = onManageClasses
+                    onManageClasses = onManageClasses,
+                    onDelete = onShowConfirmDelete
                 )
             }
 
@@ -152,7 +193,11 @@ private fun ScreenPreview() {
             onCreateCourseClick = {},
             onEditCourse = {},
             onManageClasses = {},
-            onNavigateToSearch = {}
+            onNavigateToSearch = {},
+            onDelete = {},
+            showConfirmDeleteId = "123",
+            onShowConfirmDelete = {},
+            onHideConfirmDelete = {}
         )
     }
 }

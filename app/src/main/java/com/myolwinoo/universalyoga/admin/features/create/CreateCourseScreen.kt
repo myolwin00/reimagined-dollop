@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -30,19 +31,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -55,9 +66,10 @@ import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
-import kotlinx.coroutines.delay
 import kotlinx.datetime.DayOfWeek
 import kotlinx.serialization.Serializable
+import java.time.format.TextStyle
+import java.util.Locale
 
 @Serializable
 data class CreateCourseRoute(val courseId: String? = null)
@@ -90,7 +102,7 @@ fun NavGraphBuilder.createCourseScreen(
             courseId = route.courseId,
             inputError = viewModel.inputError.value,
             onBack = onBack,
-            onSave = viewModel::create,
+            onSave = viewModel::onSave,
             selectedDayOfWeek = viewModel.selectedDayOfWeek.value,
             onDayOfWeekSelected = { viewModel.selectedDayOfWeek.value = it },
             duration = viewModel.duration.value,
@@ -122,7 +134,10 @@ fun NavGraphBuilder.createCourseScreen(
             targetAudience = viewModel.targetAudience.value,
             onTargetAudienceChange = { viewModel.targetAudience.value = it },
             cancellationPolicy = viewModel.cancellationPolicy.value,
-            onCancellationPolicyChange = { viewModel.cancellationPolicy.value = it }
+            onCancellationPolicyChange = { viewModel.cancellationPolicy.value = it },
+            onDismissSave = { viewModel.showConfirmSave = false },
+            showConfirmSave = viewModel.showConfirmSave,
+            onConfirmSave = viewModel::create
         )
     }
 }
@@ -130,6 +145,8 @@ fun NavGraphBuilder.createCourseScreen(
 @Composable
 private fun Screen(
     courseId: String?,
+    showConfirmSave: Boolean,
+    onDismissSave: () -> Unit,
     inputError: CourseInputError?,
     selectedDayOfWeek: DayOfWeek,
     onDayOfWeekSelected: (DayOfWeek) -> Unit,
@@ -152,9 +169,98 @@ private fun Screen(
     cancellationPolicy: CancellationPolicy,
     onCancellationPolicyChange: (CancellationPolicy) -> Unit,
     onBack: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onConfirmSave: () -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+    if (showConfirmSave) {
+        Dialog(onDismissRequest = { onDismissSave() }) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+                ) {
+                    Text(
+                        text = "Confirm Course Details",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(Modifier.size(4.dp))
+                    Text(
+                        text = "Please review the details below and confirm they are accurate before proceeding.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.size(16.dp))
+                    ConfirmationInfo(
+                        label = "Day: ",
+                        value = selectedDayOfWeek.getDisplayName(
+                            TextStyle.FULL_STANDALONE,
+                            Locale.getDefault()
+                        )
+                    )
+                    ConfirmationInfo(
+                        label = "Start Time: ",
+                        value = time.text
+                    )
+                    ConfirmationInfo(
+                        label = "Duration: ",
+                        value = "${duration.text}min"
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    HorizontalDivider()
+                    Spacer(Modifier.size(8.dp))
+                    ConfirmationInfo(
+                        label = "Class Type: ",
+                        value = classType.displayName
+                    )
+                    ConfirmationInfo(
+                        label = "Difficulty: ",
+                        value = difficulty.displayName
+                    )
+                    ConfirmationInfo(
+                        label = "Target Audience: ",
+                        value = targetAudience.displayName
+                    )
+                    ConfirmationInfo(
+                        label = "Description: ",
+                        value = description.text.ifBlank { "No description." }
+                    )
+                    Spacer(Modifier.size(8.dp))
+                    HorizontalDivider()
+                    Spacer(Modifier.size(8.dp))
+                    ConfirmationInfo(
+                        label = "Capacity: ",
+                        value = "${capacity.text} persons"
+                    )
+                    ConfirmationInfo(
+                        label = "Price Per Class: ",
+                        value = "£${price.text}"
+                    )
+                    ConfirmationInfo(
+                        label = "Cancellation Policy: ",
+                        value = cancellationPolicy.displayName
+                    )
+                    Spacer(Modifier.size(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = onDismissSave) {
+                            Text("Cancel")
+                        }
+                        Button(onClick = onConfirmSave) {
+                            Text("Save")
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier
@@ -316,6 +422,40 @@ private fun Screen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ConfirmationInfo(
+    modifier: Modifier = Modifier,
+    label: String,
+    value: String
+) {
+    Text(
+        modifier = modifier,
+        text = getAnnotatedString(
+            label = label,
+            value = value
+        ),
+        style = MaterialTheme.typography.bodyMedium
+    )
+}
+
+@Composable
+private fun getAnnotatedString(
+    label: String,
+    value: String
+): AnnotatedString {
+    return buildAnnotatedString {
+        withStyle(
+            style = SpanStyle(
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            append(label)
+        }
+        append(value)
     }
 }
 

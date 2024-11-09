@@ -1,6 +1,8 @@
 package com.myolwinoo.universalyoga.admin.features.create
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -35,6 +37,7 @@ class CreateCourseScreenViewModel(
 
     val navigateToHome = mutableStateOf(false)
     val inputError = mutableStateOf<CourseInputError?>(null)
+    var showConfirmSave by mutableStateOf(false)
 
     init {
         viewModelScope.launch {
@@ -55,13 +58,16 @@ class CreateCourseScreenViewModel(
         }
     }
 
-    fun create() {
+    fun onSave() {
         val error = validateInputs()
         if (error != null) {
             inputError.value = error
             return
         }
+        showConfirmSave = true
+    }
 
+    fun create() {
         viewModelScope.launch {
             val course = YogaCourse(
                 id = courseId ?: UUID.randomUUID().toString(),

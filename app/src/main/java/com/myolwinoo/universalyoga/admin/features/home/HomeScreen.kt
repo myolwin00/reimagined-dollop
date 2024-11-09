@@ -110,7 +110,7 @@ private fun Screen(
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f)
                 ),
                 title = {
-                    Text("All Courses")
+                    Text("All Courses" + if (courses.isEmpty()) "" else " (${courses.size})")
                 },
                 actions = {
                     IconButton(onClick = onShowConfirmUpload) {

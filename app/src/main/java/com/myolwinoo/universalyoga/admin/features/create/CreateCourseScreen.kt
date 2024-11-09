@@ -104,9 +104,15 @@ fun NavGraphBuilder.createCourseScreen(
                 viewModel.resetInputError()
             },
             capacity = viewModel.capacity.value,
-            onCapacityChange = { viewModel.capacity.value = it },
+            onCapacityChange = {
+                viewModel.capacity.value = it
+                viewModel.resetInputError()
+            },
             price = viewModel.price.value,
-            onPriceChange = { viewModel.price.value = it },
+            onPriceChange = {
+                viewModel.price.value = it
+                viewModel.resetInputError()
+            },
             description = viewModel.description.value,
             onDescriptionChange = { viewModel.description.value = it },
             classType = viewModel.classType.value,
@@ -325,6 +331,7 @@ fun ScheduleSection(
     val isError = when (inputError) {
         CourseInputError.StartTime,
         CourseInputError.Duration -> true
+
         else -> false
     }
     Card(
@@ -462,6 +469,7 @@ fun PricingSection(
     val isError = when (inputError) {
         CourseInputError.Capacity,
         CourseInputError.Price -> true
+
         else -> false
     }
     Card(

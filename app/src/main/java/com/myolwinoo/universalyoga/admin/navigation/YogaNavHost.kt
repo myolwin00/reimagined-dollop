@@ -67,8 +67,13 @@ fun YogaNavHost(
         searchScreen(
             repo = repo,
             onBack = navController::popBackStack,
-            onEditCourse = { navController.navigateToCreateCourse(it) },
-            onManageClasses = navController::navigateToYogaClass
+            onManageClasses = navController::navigateToYogaClass,
+            onEditClass = { classId, courseId ->
+                navController.navigateToCreateYogaClass(
+                    classId = classId,
+                    courseId = courseId
+                )
+            }
         )
 
         createCourseScreen(
@@ -80,10 +85,10 @@ fun YogaNavHost(
             repo = repo,
             onBack = navController::popBackStack,
             onCreateClass = { navController.navigateToCreateYogaClass(it) },
-            onEditClass = { courseId, classId ->
+            onEditClass = { classId, courseId ->
                 navController.navigateToCreateYogaClass(
-                    courseId = courseId,
-                    classId = classId
+                    classId = classId,
+                    courseId = courseId
                 )
             }
         )

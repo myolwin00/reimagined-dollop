@@ -2,14 +2,13 @@
 
 package com.myolwinoo.universalyoga.admin.features.search
 
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
+import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -34,7 +33,7 @@ class SearchViewModel(
     var searchQuery = mutableStateOf(TextFieldValue(""))
         private set
 
-    private val allCourses = repo.getAllCourses()
+    private val allYogaClasses = repo.getAllYogaClasses()
     private val searchQueryFlow = MutableStateFlow("")
 
     val suggestions = searchQueryFlow
@@ -44,22 +43,16 @@ class SearchViewModel(
         .map { it.map { (_, name) -> name } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    val searchResult: StateFlow<List<YogaCourse>> = combine(
+    val searchResult: StateFlow<List<YogaClass>> = combine(
         searchQueryFlow
             .debounce(SEARCH_DEBOUNCE_MILLIS)
             .distinctUntilChanged(),
-        allCourses
-    ) { query, courses ->
+        allYogaClasses
+    ) { query, yogaClasses ->
         if (query.isBlank()) {
             emptyList()
         } else {
-            courses.filter {
-                it.classes.any { yogaClass ->
-                    yogaClass.teacherName.contains(query, true)
-                }
-            }
-        }.also {
-            Log.d("SearchViewModel", "searchResult: $it")
+            yogaClasses.filter { it.teacherName.contains(query, true) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
@@ -79,9 +72,9 @@ class SearchViewModel(
         searchQueryFlow.value = query.text
     }
 
-    fun deleteCourse(courseId: String) {
+    fun deleteYogaClass(classId: String) {
         viewModelScope.launch {
-            repo.deleteCourse(courseId)
+            repo.deleteClass(classId)
         }
     }
 

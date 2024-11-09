@@ -10,11 +10,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +29,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
@@ -47,10 +50,11 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.myolwinoo.universalyoga.admin.R
-import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
+import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
-import com.myolwinoo.universalyoga.admin.features.common.courseList
+import com.myolwinoo.universalyoga.admin.features.common.yogaClassList
+import com.myolwinoo.universalyoga.admin.features.yogaclass.OnEditClass
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import kotlinx.serialization.Serializable
 
@@ -64,7 +68,7 @@ fun NavController.navigateToSearch() {
 fun NavGraphBuilder.searchScreen(
     repo: YogaRepository,
     onBack: () -> Unit,
-    onEditCourse: (courseId: String) -> Unit,
+    onEditClass: OnEditClass,
     onManageClasses: (courseId: String) -> Unit
 ) {
     composable<SearchRoute> {
@@ -81,12 +85,12 @@ fun NavGraphBuilder.searchScreen(
                 viewModel.updateQuery(TextFieldValue(it, TextRange(it.length)))
             },
             onBack = onBack,
-            onEditCourse = onEditCourse,
             onManageClasses = onManageClasses,
-            onDelete = viewModel::deleteCourse,
+            onDelete = viewModel::deleteYogaClass,
             showConfirmDeleteId = viewModel.confirmDeleteId.value,
             onShowConfirmDelete = viewModel::showConfirmDelete,
-            onHideConfirmDelete = viewModel::hideConfirmDelete
+            onHideConfirmDelete = viewModel::hideConfirmDelete,
+            onEditClass = onEditClass
         )
     }
 }
@@ -96,18 +100,17 @@ private fun Screen(
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit,
     onClearQuery: () -> Unit,
-    searchResult: List<YogaCourse>,
+    searchResult: List<YogaClass>,
     suggestions: List<String>,
     onSuggestionClicked: (String) -> Unit,
     onBack: () -> Unit,
-    onEditCourse: (courseId: String) -> Unit,
     onManageClasses: (courseId: String) -> Unit,
-    onDelete: (courseId: String) -> Unit,
+    onDelete: (classId: String) -> Unit,
     showConfirmDeleteId: String?,
-    onShowConfirmDelete: (courseId: String) -> Unit,
-    onHideConfirmDelete: () -> Unit
+    onShowConfirmDelete: (classId: String) -> Unit,
+    onHideConfirmDelete: () -> Unit,
+    onEditClass: OnEditClass,
 ) {
-
     Scaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -124,7 +127,6 @@ private fun Screen(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding() + 100.dp
                 )
             ) {
@@ -132,8 +134,10 @@ private fun Screen(
                     Column(
                         modifier = Modifier
                             .padding(top = 8.dp, bottom = 8.dp)
+                            .background(MaterialTheme.colorScheme.background)
                             .animateContentSize()
                     ) {
+                        Spacer(Modifier.padding(top = innerPadding.calculateTopPadding()))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -205,12 +209,12 @@ private fun Screen(
                         }
                     }
                 }
-                courseList(
-                    courses = searchResult,
-                    expandClasses = true,
-                    onEditCourse = onEditCourse,
-                    onManageClasses = onManageClasses,
-                    onDelete = onShowConfirmDelete
+                yogaClassList(
+                    yogaClasses = searchResult,
+                    horizontalItemSpacing = 20,
+                    onEditClass = onEditClass,
+                    onDeleteClass = onShowConfirmDelete,
+                    onManageClasses = onManageClasses
                 )
             }
 
@@ -220,9 +224,9 @@ private fun Screen(
                         .padding(horizontal = 20.dp)
                         .align(Alignment.Center),
                     text = if (query.text.isBlank()) {
-                        "Search for a course by entering a teacher name."
+                        "Search for a class by entering a teacher name."
                     } else {
-                        "We couldn't find any courses matching with the teacher name \"${query.text}\"."
+                        "We couldn't find any classes matching with the teacher name \"${query.text}\"."
                     },
                     textAlign = TextAlign.Center
                 )
@@ -244,12 +248,12 @@ private fun ScreenPreview() {
             onQueryChange = {},
             searchResult = emptyList(),
             onBack = {},
-            onEditCourse = {},
             onManageClasses = {},
             onDelete = {},
             showConfirmDeleteId = null,
             onShowConfirmDelete = {},
-            onHideConfirmDelete = {}
+            onHideConfirmDelete = {},
+            onEditClass = { _, _ -> }
         )
     }
 }

@@ -30,6 +30,10 @@ interface YogaDao {
 
     // yoga classes
     @Transaction
+    @Query("select * from yoga_classes")
+    fun getAllClasses(): Flow<List<YogaClassDetails>>
+
+    @Transaction
     @Query("select * from yoga_classes where courseid = :courseId")
     fun getClasses(courseId: String): Flow<List<YogaClassDetails>>
 

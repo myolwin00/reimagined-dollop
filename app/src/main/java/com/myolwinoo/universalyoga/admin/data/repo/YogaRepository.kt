@@ -64,6 +64,10 @@ class YogaRepository(
         yogaDao.deleteCourse(courseId)
     }
 
+    suspend fun deleteClass(classId: String) {
+        yogaDao.deleteClass(classId)
+    }
+
     fun getYogaClasses(courseId: String): Flow<List<YogaClass>> {
         return yogaDao.getClasses(courseId)
             .map { it.map(::mapYogaClass) }

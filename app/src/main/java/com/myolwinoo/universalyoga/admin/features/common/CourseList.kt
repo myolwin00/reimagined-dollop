@@ -209,7 +209,7 @@ private fun YogaClasses(
             ) {
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = if (expanded) "Hide Classes" else "Show Classes",
+                    text = if (expanded) "Hide Classes (${yogaClasses.size})" else "Show Classes (${yogaClasses.size})",
                     style = MaterialTheme.typography.titleMedium
                 )
                 IconButton(

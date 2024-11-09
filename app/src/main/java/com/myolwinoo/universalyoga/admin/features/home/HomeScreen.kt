@@ -11,8 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -40,6 +38,7 @@ import androidx.navigation.compose.composable
 import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
+import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
 import com.myolwinoo.universalyoga.admin.features.common.courseList
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
@@ -64,8 +63,8 @@ fun NavGraphBuilder.homeScreen(
             onEditCourse = onEditCourse,
             onManageClasses = onManageClasses,
             onNavigateToSearch = onNavigateToSearch,
-            onDelete = viewModel::deleteCourse,
 
+            onDelete = viewModel::deleteCourse,
             showConfirmDeleteId = viewModel.confirmDeleteId.value,
             onShowConfirmDelete = viewModel::showConfirmDelete,
             onHideConfirmDelete = viewModel::hideConfirmDelete,
@@ -145,7 +144,7 @@ private fun Screen(
             onHideConfirmDelete = onHideConfirmDelete
         )
 
-        DeleteConfirmation(
+        UploadConfirmation(
             onUpload = onUpload,
             showConfirmUpload = showConfirmUpload,
             onHideConfirmUpload = onHideConfirmUpload
@@ -182,48 +181,7 @@ private fun Screen(
 }
 
 @Composable
-private fun DeleteConfirmation(
-    modifier: Modifier = Modifier,
-    onDelete: (courseId: String) -> Unit,
-    showConfirmDeleteId: String?,
-    onHideConfirmDelete: () -> Unit
-) {
-    showConfirmDeleteId?.let { id ->
-        AlertDialog(
-            modifier = modifier,
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_delete),
-                    contentDescription = "Delete Icon"
-                )
-            },
-            title = { Text(text = "Confirm Delete") },
-            text = { Text(text = "Are you sure you want to delete this? This action cannot be undone.") },
-            onDismissRequest = { onHideConfirmDelete() },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        onDelete(id)
-                        onHideConfirmDelete()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Confirm")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onHideConfirmDelete) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-}
-
-@Composable
-private fun DeleteConfirmation(
+private fun UploadConfirmation(
     modifier: Modifier = Modifier,
     onUpload: () -> Unit,
     showConfirmUpload: Boolean,

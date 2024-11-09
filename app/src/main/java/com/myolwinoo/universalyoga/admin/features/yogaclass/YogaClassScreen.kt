@@ -16,7 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
@@ -24,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,7 +38,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,8 +49,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.myolwinoo.universalyoga.admin.R
+import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
+import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 import kotlinx.serialization.Serializable
@@ -67,12 +70,18 @@ fun NavGraphBuilder.yogaClassScreen(
 ) {
     composable<YogaClassRoute> {
         val route = it.toRoute<YogaClassRoute>()
-        val viewModel: YogaClassViewModel = viewModel(factory = YogaClassViewModel.Factory(route.courseId, repo))
+        val viewModel: YogaClassViewModel =
+            viewModel(factory = YogaClassViewModel.Factory(route.courseId, repo))
         val yogaCourse = viewModel.course.collectAsStateWithLifecycle(null)
         Screen(
             course = yogaCourse.value,
             onBack = onBack,
-            onCreateClass = viewModel::createClass
+            onCreateClass = viewModel::createClass,
+
+            onDelete = viewModel::deleteClass,
+            showConfirmDeleteId = viewModel.confirmDeleteId.value,
+            onShowConfirmDelete = viewModel::showConfirmDelete,
+            onHideConfirmDelete = viewModel::hideConfirmDelete,
         )
     }
 }
@@ -81,7 +90,11 @@ fun NavGraphBuilder.yogaClassScreen(
 private fun Screen(
     course: YogaCourse?,
     onBack: () -> Unit,
-    onCreateClass: () -> Unit
+    onCreateClass: () -> Unit,
+    onDelete: (classId: String) -> Unit,
+    showConfirmDeleteId: String?,
+    onShowConfirmDelete: (classId: String) -> Unit,
+    onHideConfirmDelete: () -> Unit,
 ) {
 
     val listState = rememberLazyListState()
@@ -118,6 +131,13 @@ private fun Screen(
             )
         }
     ) { innerPadding ->
+
+        DeleteConfirmation(
+            onDelete = onDelete,
+            showConfirmDeleteId = showConfirmDeleteId,
+            onHideConfirmDelete = onHideConfirmDelete
+        )
+
         course?.let {
             Box(
                 modifier = Modifier
@@ -208,25 +228,17 @@ private fun Screen(
                                 Text(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(bottom = 8.dp)
-                                        .background(MaterialTheme.colorScheme.background),
-                                    text = "Schedules",
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .padding(bottom = 8.dp),
+                                    text = "Schedules (${course.classes.size})",
                                     style = MaterialTheme.typography.titleLarge
                                 )
                             }
-                            items(
-                                items = course.classes,
-                                key = { it.id }
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = "${it.date} by ${it.teacherName}",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                            }
+                            yogaClassList(
+                                yogaClasses = course.classes,
+                                onEditClass = {},
+                                onDeleteClass = onShowConfirmDelete
+                            )
                         }
                     }
                 }
@@ -242,6 +254,112 @@ private fun Screen(
     }
 }
 
+private fun LazyListScope.yogaClassList(
+    yogaClasses: List<YogaClass>,
+    onEditClass: (classId: String) -> Unit,
+    onDeleteClass: (classId: String) -> Unit
+) {
+    itemsIndexed(
+        items = yogaClasses,
+        key = { i, item -> item.id }
+    ) { i, item ->
+        if (i != 0) {
+            HorizontalDivider(modifier = Modifier.padding(bottom = 8.dp))
+        }
+        YogaClassItem(
+            yogaClass = item,
+            onEditClass = onEditClass,
+            onDeleteClass = onDeleteClass
+        )
+    }
+}
+
+@Composable
+private fun YogaClassItem(
+    modifier: Modifier = Modifier,
+    yogaClass: YogaClass,
+    onEditClass: (classId: String) -> Unit,
+    onDeleteClass: (classId: String) -> Unit
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(modifier = modifier.fillMaxWidth()) {
+            Column(modifier = modifier.weight(1f)) {
+                Row(modifier = Modifier.padding(top = 4.dp)) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_person),
+                        contentDescription = "people icon"
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        modifier = Modifier.padding(top = 2.dp),
+                        text = yogaClass.teacherName,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                Row(modifier = Modifier.padding(top = 4.dp)) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_event),
+                        contentDescription = "date icon"
+                    )
+                    Spacer(modifier = Modifier.size(4.dp))
+                    Text(
+                        modifier = Modifier.padding(top = 2.dp),
+                        text = yogaClass.date,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
+            IconButton(
+                modifier = Modifier.size(36.dp),
+                onClick = { onEditClass(yogaClass.id) }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_edit),
+                    contentDescription = "edit button"
+                )
+            }
+
+            IconButton(
+                modifier = Modifier.size(36.dp),
+                onClick = { onDeleteClass(yogaClass.id) }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_delete),
+                    tint = MaterialTheme.colorScheme.error,
+                    contentDescription = "delete button"
+                )
+            }
+        }
+
+        Row(modifier = Modifier.padding(top = 4.dp)) {
+            Icon(
+                painter = painterResource(R.drawable.ic_comment),
+                contentDescription = "comment icon"
+            )
+            Spacer(modifier = Modifier.size(4.dp))
+            Text(
+                modifier = Modifier.padding(top = 2.dp),
+                text = yogaClass.comment.ifBlank { "No comment." },
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun YogaClassItemPreview() {
+    UniversalYogaTheme {
+        YogaClassItem(
+            yogaClass = DummyDataProvider.dummyYogaCourses.first().classes.first(),
+            onEditClass = {},
+            onDeleteClass = {}
+        )
+    }
+}
+
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ScreenPreview() {
@@ -249,7 +367,11 @@ private fun ScreenPreview() {
         Screen(
             course = DummyDataProvider.dummyYogaCourses.first(),
             onBack = {},
-            onCreateClass = {}
+            onCreateClass = {},
+            onDelete = {},
+            showConfirmDeleteId = null,
+            onShowConfirmDelete = {},
+            onHideConfirmDelete = {}
         )
     }
 }

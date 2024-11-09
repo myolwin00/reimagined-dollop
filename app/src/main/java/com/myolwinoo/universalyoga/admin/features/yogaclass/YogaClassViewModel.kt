@@ -1,5 +1,6 @@
 package com.myolwinoo.universalyoga.admin.features.yogaclass
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -16,6 +17,17 @@ class YogaClassViewModel(
 
     val course = repo.getCourseDetails(courseId)
 
+    var confirmDeleteId = mutableStateOf<String?>(null)
+        private set
+
+    fun showConfirmDelete(id: String) {
+        confirmDeleteId.value = id
+    }
+
+    fun hideConfirmDelete() {
+        confirmDeleteId.value = null
+    }
+
     fun createClass() {
         viewModelScope.launch {
             repo.createYogaClass(
@@ -28,6 +40,12 @@ class YogaClassViewModel(
                     comment = "Sample comment.",
                 )
             )
+        }
+    }
+
+    fun deleteClass(classId: String) {
+        viewModelScope.launch {
+            repo.deleteClass(classId)
         }
     }
 

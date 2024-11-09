@@ -83,11 +83,18 @@ fun generateSampleYogaClasses(): List<YogaClass> {
         val date = "2023-12-19"
         val teacher = teachers[random.nextInt(teachers.size)]
         val comment = listOf(
-            "Great class!",
-            "Relaxing and rejuvenating.",
-            "Challenging but rewarding.",
-            "Loved the flow."
-        )[random.nextInt(4)]
+            "This class is designed for relaxation and stress relief. \n" +
+                    "It incorporates gentle movements, breathing exercises, and guided meditation. \n" +
+                    "Wear comfortable clothing and bring a blanket for extra warmth during the final relaxation.",
+            "This class is physically challenging and is recommended for students with some yoga experience. \n" +
+                    "It will involve advanced poses and variations. \n" +
+                    "Listen to your body and take breaks when needed. \n" +
+                    "Please inform the instructor of any injuries or limitations before class.",
+            "This class emphasizes the flow and connection between poses. \n" +
+                    "It is a dynamic and invigorating practice that will build strength, flexibility, and stamina. \n" +
+                    "Be prepared to move and sweat! \n" +
+                    "Hydrate well before and after class."
+        )[random.nextInt(3)]
 
         classes.add(
             YogaClass(

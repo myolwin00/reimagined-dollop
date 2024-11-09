@@ -33,7 +33,8 @@ class CreateCourseScreenViewModel(
     var targetAudience = mutableStateOf(TargetAudience.ADULTS)
     var cancellationPolicy = mutableStateOf(CancellationPolicy.FLEXIBLE)
 
-    var navigateToHome = mutableStateOf(false)
+    val navigateToHome = mutableStateOf(false)
+    val inputError = mutableStateOf<CourseInputError?>(null)
 
     init {
         viewModelScope.launch {
@@ -55,24 +56,54 @@ class CreateCourseScreenViewModel(
     }
 
     fun create() {
+        val error = validateInputs()
+        if (error != null) {
+            inputError.value = error
+            return
+        }
+
         viewModelScope.launch {
             val course = YogaCourse(
                 id = courseId ?: UUID.randomUUID().toString(),
+
                 dayOfWeek = selectedDayOfWeek.value,
-                time = time.value.text,
-                capacity = capacity.value.text.toInt(),
-                duration = duration.value.text,
-                pricePerClass = price.value.text.toDouble(),
+                time = time.value.text.trim(),
+                duration = duration.value.text.trim(),
+
                 typeOfClass = classType.value,
-                description = description.value.text,
                 difficultyLevel = difficulty.value,
-                cancellationPolicy =cancellationPolicy.value,
                 targetAudience = targetAudience.value,
+                description = description.value.text,
+
+                capacity = capacity.value.text.toInt(),
+                pricePerClass = price.value.text.toDouble(),
+                cancellationPolicy =cancellationPolicy.value,
+
                 classes = emptyList()
             )
             repo.createCourse(course)
                 .onSuccess { navigateToHome.value = true }
         }
+    }
+
+    fun resetInputError() {
+        inputError.value = null
+    }
+
+    private fun validateInputs(): CourseInputError? {
+        if (time.value.text.trim().isBlank()) {
+            return CourseInputError.StartTime
+        }
+        if (duration.value.text.trim().toIntOrNull() == null) {
+            return CourseInputError.Duration
+        }
+        if (capacity.value.text.trim().toIntOrNull() == null) {
+            return CourseInputError.Capacity
+        }
+        if (price.value.text.trim().toDoubleOrNull() == null) {
+            return CourseInputError.Price
+        }
+        return null
     }
 
     class Factory(

@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -66,7 +68,12 @@ fun NavGraphBuilder.homeScreen(
 
             showConfirmDeleteId = viewModel.confirmDeleteId.value,
             onShowConfirmDelete = viewModel::showConfirmDelete,
-            onHideConfirmDelete = viewModel::hideConfirmDelete
+            onHideConfirmDelete = viewModel::hideConfirmDelete,
+
+            onUpload = viewModel::uploadDataToServer,
+            showConfirmUpload = viewModel.confirmUpload.value,
+            onShowConfirmUpload = viewModel::showConfirmUpload,
+            onHideConfirmUpload = viewModel::hideConfirmUpload
         )
     }
 }
@@ -81,7 +88,12 @@ private fun Screen(
     onDelete: (courseId: String) -> Unit,
     showConfirmDeleteId: String?,
     onShowConfirmDelete: (courseId: String) -> Unit,
-    onHideConfirmDelete: () -> Unit
+    onHideConfirmDelete: () -> Unit,
+
+    onUpload: () -> Unit,
+    showConfirmUpload: Boolean,
+    onShowConfirmUpload: () -> Unit,
+    onHideConfirmUpload: () -> Unit
 ) {
 
     val listState = rememberLazyListState()
@@ -102,7 +114,7 @@ private fun Screen(
                     Text("All Courses")
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onShowConfirmUpload) {
                         Icon(
                             painter = painterResource(R.drawable.ic_upload),
                             contentDescription = "upload button"
@@ -126,34 +138,19 @@ private fun Screen(
             )
         }
     ) { innerPadding ->
-        showConfirmDeleteId?.let { id ->
-            AlertDialog(
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_delete),
-                        contentDescription = "Delete Icon"
-                    )
-                },
-                title = { Text(text = "Confirm Delete") },
-                text = { Text(text = "Are you sure you want to delete this? This action cannot be undone.") },
-                onDismissRequest = { onHideConfirmDelete() },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            onDelete(id)
-                            onHideConfirmDelete()
-                        }
-                    ) {
-                        Text("Confirm")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = onHideConfirmDelete) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
+
+        DeleteConfirmation(
+            onDelete = onDelete,
+            showConfirmDeleteId = showConfirmDeleteId,
+            onHideConfirmDelete = onHideConfirmDelete
+        )
+
+        DeleteConfirmation(
+            onUpload = onUpload,
+            showConfirmUpload = showConfirmUpload,
+            onHideConfirmUpload = onHideConfirmUpload
+        )
+
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
@@ -184,6 +181,85 @@ private fun Screen(
 
 }
 
+@Composable
+private fun DeleteConfirmation(
+    modifier: Modifier = Modifier,
+    onDelete: (courseId: String) -> Unit,
+    showConfirmDeleteId: String?,
+    onHideConfirmDelete: () -> Unit
+) {
+    showConfirmDeleteId?.let { id ->
+        AlertDialog(
+            modifier = modifier,
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_delete),
+                    contentDescription = "Delete Icon"
+                )
+            },
+            title = { Text(text = "Confirm Delete") },
+            text = { Text(text = "Are you sure you want to delete this? This action cannot be undone.") },
+            onDismissRequest = { onHideConfirmDelete() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onDelete(id)
+                        onHideConfirmDelete()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onHideConfirmDelete) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun DeleteConfirmation(
+    modifier: Modifier = Modifier,
+    onUpload: () -> Unit,
+    showConfirmUpload: Boolean,
+    onHideConfirmUpload: () -> Unit
+) {
+    if (showConfirmUpload) {
+        AlertDialog(
+            modifier = modifier,
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_upload),
+                    contentDescription = "Upload Icon"
+                )
+            },
+            title = { Text(text = "Upload to Server") },
+            text = { Text(text = "Uploading this data will replace any existing data on the server. Are you sure you want to proceed?") },
+            onDismissRequest = { onHideConfirmUpload() },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onUpload()
+                        onHideConfirmUpload()
+                    }
+                ) {
+                    Text("Upload")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onHideConfirmUpload) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ScreenPreview() {
@@ -197,7 +273,11 @@ private fun ScreenPreview() {
             onDelete = {},
             showConfirmDeleteId = "123",
             onShowConfirmDelete = {},
-            onHideConfirmDelete = {}
+            onHideConfirmDelete = {},
+            onUpload = {},
+            showConfirmUpload = true,
+            onShowConfirmUpload = {},
+            onHideConfirmUpload = {}
         )
     }
 }

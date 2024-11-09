@@ -100,7 +100,7 @@ private fun CourseItem(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = course.description,
+                text = course.description.ifBlank { "No description." },
                 style = MaterialTheme.typography.bodyLarge
             )
 

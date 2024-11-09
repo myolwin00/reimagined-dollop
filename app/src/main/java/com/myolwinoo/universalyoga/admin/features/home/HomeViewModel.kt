@@ -19,6 +19,9 @@ class HomeViewModel(
     var confirmDeleteId = mutableStateOf<String?>(null)
         private set
 
+    var confirmUpload = mutableStateOf(false)
+        private set
+
     fun showConfirmDelete(id: String) {
         confirmDeleteId.value = id
     }
@@ -27,10 +30,22 @@ class HomeViewModel(
         confirmDeleteId.value = null
     }
 
+    fun showConfirmUpload() {
+        confirmUpload.value = true
+    }
+
+    fun hideConfirmUpload() {
+        confirmUpload.value = false
+    }
+
     fun deleteCourse(courseId: String) {
         viewModelScope.launch {
             repo.deleteCourse(courseId)
         }
+    }
+
+    fun uploadDataToServer() {
+
     }
 
     class Factory(

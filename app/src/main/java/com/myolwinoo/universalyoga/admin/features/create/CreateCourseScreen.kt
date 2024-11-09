@@ -3,10 +3,12 @@
 package com.myolwinoo.universalyoga.admin.features.create
 
 import android.content.res.Configuration
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,13 +16,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +56,7 @@ import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -84,14 +88,21 @@ fun NavGraphBuilder.createCourseScreen(
 
         Screen(
             courseId = route.courseId,
+            inputError = viewModel.inputError.value,
             onBack = onBack,
             onSave = viewModel::create,
             selectedDayOfWeek = viewModel.selectedDayOfWeek.value,
             onDayOfWeekSelected = { viewModel.selectedDayOfWeek.value = it },
             duration = viewModel.duration.value,
-            onDurationChange = { viewModel.duration.value = it },
+            onDurationChange = {
+                viewModel.duration.value = it
+                viewModel.resetInputError()
+            },
             time = viewModel.time.value,
-            onTimeChange = { viewModel.time.value = it },
+            onTimeChange = {
+                viewModel.time.value = it
+                viewModel.resetInputError()
+            },
             capacity = viewModel.capacity.value,
             onCapacityChange = { viewModel.capacity.value = it },
             price = viewModel.price.value,
@@ -113,6 +124,7 @@ fun NavGraphBuilder.createCourseScreen(
 @Composable
 private fun Screen(
     courseId: String?,
+    inputError: CourseInputError?,
     selectedDayOfWeek: DayOfWeek,
     onDayOfWeekSelected: (DayOfWeek) -> Unit,
     duration: TextFieldValue,
@@ -162,81 +174,113 @@ private fun Screen(
             )
         }
     ) { innerPadding ->
+        val listState = rememberLazyListState()
+
+        // scroll to the section that has input error
+        LaunchedEffect(inputError) {
+            when (inputError) {
+                CourseInputError.StartTime,
+                CourseInputError.Duration -> {
+                    listState.animateScrollToItem(0)
+                }
+
+                CourseInputError.Capacity,
+                CourseInputError.Price -> {
+                    listState.animateScrollToItem(2)
+                }
+
+                null -> {}
+            }
+        }
+
         Box {
-            Column(
-                modifier = Modifier
-                    .padding(
-                        top = 0.dp,
-                        bottom = innerPadding.calculateBottomPadding()
-                    )
-                    .verticalScroll(rememberScrollState())
+            LazyColumn(
+                modifier = Modifier,
+                state = listState,
+                contentPadding = PaddingValues(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = innerPadding.calculateBottomPadding()
+                )
             ) {
-                Spacer(Modifier.padding(top = innerPadding.calculateTopPadding()))
-                SectionTitle(
-                    title = "Schedule"
-                )
-                Spacer(Modifier.size(8.dp))
-                ScheduleSection(
-                    modifier = Modifier
-                        .padding(
-                            start = 20.dp,
-                            end = 20.dp
+                item {
+                    Column {
+                        SectionTitle(
+                            title = "Schedule"
                         )
-                        .fillMaxWidth(),
-                    selectedDayOfWeek = selectedDayOfWeek,
-                    onDayOfWeekSelected = onDayOfWeekSelected,
-                    duration = duration,
-                    onDurationChange = onDurationChange,
-                    time = time,
-                    onTimeChange = onTimeChange
-                )
-                Spacer(Modifier.size(16.dp))
+                        Spacer(Modifier.size(8.dp))
+                        ScheduleSection(
+                            modifier = Modifier
+                                .padding(
+                                    start = 20.dp,
+                                    end = 20.dp
+                                )
+                                .fillMaxWidth(),
+                            selectedDayOfWeek = selectedDayOfWeek,
+                            onDayOfWeekSelected = onDayOfWeekSelected,
+                            duration = duration,
+                            onDurationChange = onDurationChange,
+                            time = time,
+                            onTimeChange = onTimeChange,
+                            inputError = inputError,
+                        )
+                        Spacer(Modifier.size(16.dp))
+                    }
+                }
 
-                SectionTitle(
-                    title = "Class Details"
-                )
-                Spacer(Modifier.size(12.dp))
-                DetailsSection(
-                    modifier = Modifier
-                        .padding(
-                            start = 20.dp,
-                            end = 20.dp
+                item {
+                    Column {
+                        SectionTitle(
+                            title = "Class Details"
                         )
-                        .fillMaxWidth(),
-                    description = description,
-                    onDescriptionChange = onDescriptionChange,
-                    classType = classType,
-                    onClassTypeChange = onClassTypeChange,
-                    difficulty = difficulty,
-                    onDifficultyChange = onDifficultyChange,
-                    targetAudience = targetAudience,
-                    onTargetAudienceChange = onTargetAudienceChange
-                )
-                Spacer(Modifier.size(16.dp))
+                        Spacer(Modifier.size(12.dp))
+                        DetailsSection(
+                            modifier = Modifier
+                                .padding(
+                                    start = 20.dp,
+                                    end = 20.dp
+                                )
+                                .fillMaxWidth(),
+                            description = description,
+                            onDescriptionChange = onDescriptionChange,
+                            classType = classType,
+                            onClassTypeChange = onClassTypeChange,
+                            difficulty = difficulty,
+                            onDifficultyChange = onDifficultyChange,
+                            targetAudience = targetAudience,
+                            onTargetAudienceChange = onTargetAudienceChange
+                        )
+                        Spacer(Modifier.size(16.dp))
+                    }
+                }
 
-                SectionTitle(
-                    title = "Pricing & Policy"
-                )
-                Spacer(Modifier.size(12.dp))
-                PricingSection(
-                    modifier = Modifier
-                        .padding(
-                            start = 20.dp,
-                            end = 20.dp
+                item {
+                    Column {
+                        SectionTitle(
+                            title = "Pricing & Policy"
                         )
-                        .fillMaxWidth(),
-                    capacity = capacity,
-                    onCapacityChange = onCapacityChange,
-                    price = price,
-                    onPriceChange = onPriceChange,
-                    cancellationPolicy = cancellationPolicy,
-                    onCancellationPolicyChange = onCancellationPolicyChange
-                )
-                Spacer(
-                    Modifier
-                        .imePadding()
-                        .size(100.dp)
-                )
+                        Spacer(Modifier.size(12.dp))
+                        PricingSection(
+                            modifier = Modifier
+                                .padding(
+                                    start = 20.dp,
+                                    end = 20.dp
+                                )
+                                .fillMaxWidth(),
+                            capacity = capacity,
+                            onCapacityChange = onCapacityChange,
+                            price = price,
+                            onPriceChange = onPriceChange,
+                            cancellationPolicy = cancellationPolicy,
+                            onCancellationPolicyChange = onCancellationPolicyChange,
+                            inputError = inputError
+                        )
+                        Spacer(
+                            Modifier
+                                .imePadding()
+                                .size(100.dp)
+                        )
+                    }
+                }
             }
 
             Box(
@@ -276,8 +320,17 @@ fun ScheduleSection(
     onDurationChange: (TextFieldValue) -> Unit,
     time: TextFieldValue,
     onTimeChange: (TextFieldValue) -> Unit,
+    inputError: CourseInputError?,
 ) {
-    Card(modifier = modifier) {
+    val isError = when (inputError) {
+        CourseInputError.StartTime,
+        CourseInputError.Duration -> true
+        else -> false
+    }
+    Card(
+        modifier = modifier,
+        border = if (isError) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else null
+    ) {
         Column(
             modifier = Modifier
                 .padding(vertical = 12.dp, horizontal = 16.dp)
@@ -291,6 +344,11 @@ fun ScheduleSection(
                 selectedDayOfWeek = selectedDayOfWeek,
                 onDayOfWeekSelected = onDayOfWeekSelected
             )
+
+            Spacer(Modifier.size(8.dp))
+            HorizontalDivider()
+            Spacer(Modifier.size(8.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -298,19 +356,21 @@ fun ScheduleSection(
                 CourseTimePicker(
                     modifier = Modifier.weight(1f),
                     value = time,
-                    onTimeSelected = onTimeChange
+                    onTimeSelected = onTimeChange,
+                    isError = inputError == CourseInputError.StartTime
                 )
 
                 OutlinedTextField(
                     modifier = Modifier.weight(1f),
                     value = duration,
                     onValueChange = onDurationChange,
-                    suffix = {
-                        Text("min")
-                    },
+                    suffix = { Text("min") },
+                    supportingText = { Text("Required") },
+                    singleLine = true,
                     maxLines = 1,
                     label = { Text("Duration") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = inputError == CourseInputError.Duration
                 )
             }
         }
@@ -343,6 +403,9 @@ fun DetailsSection(
                 selectedType = classType,
                 onTypeSelected = onClassTypeChange
             )
+
+            Spacer(Modifier.size(8.dp))
+            HorizontalDivider()
             Spacer(Modifier.size(8.dp))
 
             SectionSubtitle(
@@ -354,6 +417,9 @@ fun DetailsSection(
                 selectedValue = difficulty,
                 onDifficultySelected = onDifficultyChange
             )
+
+            Spacer(Modifier.size(8.dp))
+            HorizontalDivider()
             Spacer(Modifier.size(8.dp))
 
             SectionSubtitle(
@@ -365,6 +431,9 @@ fun DetailsSection(
                 selectedValue = targetAudience,
                 onAudienceSelected = onTargetAudienceChange
             )
+
+            Spacer(Modifier.size(8.dp))
+            HorizontalDivider()
             Spacer(Modifier.size(8.dp))
 
             OutlinedTextField(
@@ -388,8 +457,17 @@ fun PricingSection(
     onPriceChange: (TextFieldValue) -> Unit,
     cancellationPolicy: CancellationPolicy,
     onCancellationPolicyChange: (CancellationPolicy) -> Unit,
+    inputError: CourseInputError?,
 ) {
-    Card(modifier = modifier) {
+    val isError = when (inputError) {
+        CourseInputError.Capacity,
+        CourseInputError.Price -> true
+        else -> false
+    }
+    Card(
+        modifier = modifier,
+        border = if (isError) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else null
+    ) {
         Column(
             modifier = Modifier
                 .padding(vertical = 12.dp, horizontal = 16.dp)
@@ -404,6 +482,10 @@ fun PricingSection(
                     onValueChange = onCapacityChange,
                     suffix = { Text("person") },
                     label = { Text("Max Capacity") },
+                    supportingText = { Text("Required") },
+                    singleLine = true,
+                    maxLines = 1,
+                    isError = inputError == CourseInputError.Capacity,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
@@ -413,10 +495,18 @@ fun PricingSection(
                     onValueChange = onPriceChange,
                     suffix = { Text("£") },
                     label = { Text("Price") },
+                    singleLine = true,
+                    maxLines = 1,
+                    supportingText = { Text("Required") },
+                    isError = inputError == CourseInputError.Price,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
                 )
             }
+
             Spacer(Modifier.size(12.dp))
+            HorizontalDivider()
+            Spacer(Modifier.size(12.dp))
+
             SectionSubtitle(
                 title = "Cancellation Policy"
             )
@@ -441,7 +531,8 @@ private fun ScheduleSectionPreview() {
             duration = TextFieldValue(),
             onDurationChange = {},
             time = TextFieldValue(),
-            onTimeChange = {}
+            onTimeChange = {},
+            inputError = null
         )
     }
 }
@@ -475,7 +566,8 @@ private fun PricingSectionPreview() {
             price = TextFieldValue(),
             onPriceChange = {},
             cancellationPolicy = CancellationPolicy.STRICT,
-            onCancellationPolicyChange = {}
+            onCancellationPolicyChange = {},
+            inputError = null
         )
     }
 }

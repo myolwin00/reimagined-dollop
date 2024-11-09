@@ -33,6 +33,7 @@ internal fun CourseTimePicker(
     modifier: Modifier = Modifier,
     value: TextFieldValue,
     onTimeSelected: (TextFieldValue) -> Unit,
+    isError: Boolean,
 ) {
     var showTimePicker by remember { mutableStateOf(false) }
     val currentTime = Calendar.getInstance()
@@ -100,12 +101,15 @@ internal fun CourseTimePicker(
         value = value,
         onValueChange = {},
         maxLines = 1,
+        singleLine = true,
         interactionSource = interactionSource,
         label = { Text("Start Time") },
+        supportingText = { Text("Required") },
         trailingIcon = {
             IconButton(onClick = { showTimePicker = true }) {
                 Icon(painterResource(R.drawable.ic_time), contentDescription = "Select Time")
             }
         },
+        isError = isError
     )
 }

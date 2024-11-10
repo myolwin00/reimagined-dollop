@@ -8,6 +8,8 @@ import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.navigation.YogaNavHost
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.utils.ConnectionChecker
+import com.myolwinoo.universalyoga.admin.utils.ImagePickerHelper
+import com.myolwinoo.universalyoga.admin.utils.LocationHelper
 
 class MainActivity : ComponentActivity() {
 
@@ -20,7 +22,8 @@ class MainActivity : ComponentActivity() {
         val db = (application as YogaApp).yogaDb
         val repo = YogaRepository(db.yogaDao())
         val syncDataUseCase = (application as YogaApp).syncDataUseCase
-
+        val imagePickerHelper = ImagePickerHelper(applicationContext)
+        val locationHelper = LocationHelper(applicationContext)
         connectionChecker = ConnectionChecker(applicationContext)
 
         setContent {
@@ -28,7 +31,9 @@ class MainActivity : ComponentActivity() {
                 YogaNavHost(
                     repo = repo,
                     syncDataUseCase = syncDataUseCase,
-                    connectionChecker = connectionChecker
+                    connectionChecker = connectionChecker,
+                    imagePickerHelper = imagePickerHelper,
+                    locationHelper = locationHelper
                 )
             }
         }

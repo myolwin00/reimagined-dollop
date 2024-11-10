@@ -7,6 +7,7 @@ import com.myolwinoo.universalyoga.admin.data.model.CancellationPolicy
 import com.myolwinoo.universalyoga.admin.data.model.DifficultyLevel
 import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
+import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
 import kotlinx.datetime.DayOfWeek
 
 @Entity(tableName = "yoga_courses")
@@ -29,4 +30,9 @@ data class YogaCourseEntity(
     val cancellationPolicy: CancellationPolicy,
     @ColumnInfo(name = "target_audience")
     val targetAudience: TargetAudience,
+    @ColumnInfo(name = "event_type")
+    val eventType: YogaEventType,
+    val latitude: Double,
+    val longitude: Double,
+    val onlineUrl: String
 )

@@ -14,7 +14,13 @@ data class YogaCourseDetails(
         parentColumn = "id",
         entityColumn = "courseId"
     )
-    val yogaClasses: List<YogaClassDetails>
+    val yogaClasses: List<YogaClassDetails>,
+    @Relation(
+        entity = YogaImageEntity::class,
+        parentColumn = "id",
+        entityColumn = "courseId"
+    )
+    val images: List<YogaImageEntity>
 )
 
 data class YogaClassDetails(

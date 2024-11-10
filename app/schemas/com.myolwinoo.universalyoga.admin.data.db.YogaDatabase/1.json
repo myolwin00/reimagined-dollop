@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "102fec43973e1f01e7d3ee584c9a3051",
+    "identityHash": "dc7474508822d9208dac820f04040b9d",
     "entities": [
       {
         "tableName": "yoga_courses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `day_of_week` TEXT NOT NULL, `time` TEXT NOT NULL, `capacity` INTEGER NOT NULL, `duration` TEXT NOT NULL, `price_per_class` REAL NOT NULL, `type_of_class` TEXT NOT NULL, `description` TEXT NOT NULL, `difficulty_level` TEXT NOT NULL, `cancellation_policy` TEXT NOT NULL, `target_audience` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `day_of_week` TEXT NOT NULL, `time` TEXT NOT NULL, `capacity` INTEGER NOT NULL, `duration` TEXT NOT NULL, `price_per_class` REAL NOT NULL, `type_of_class` TEXT NOT NULL, `description` TEXT NOT NULL, `difficulty_level` TEXT NOT NULL, `cancellation_policy` TEXT NOT NULL, `target_audience` TEXT NOT NULL, `event_type` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `onlineUrl` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -71,6 +71,62 @@
           {
             "fieldPath": "targetAudience",
             "columnName": "target_audience",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventType",
+            "columnName": "event_type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "onlineUrl",
+            "columnName": "onlineUrl",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "yoga_images",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `base64` TEXT NOT NULL, `courseId` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "base64",
+            "columnName": "base64",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "courseId",
+            "columnName": "courseId",
             "affinity": "TEXT",
             "notNull": true
           }
@@ -189,7 +245,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '102fec43973e1f01e7d3ee584c9a3051')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'dc7474508822d9208dac820f04040b9d')"
     ]
   }
 }

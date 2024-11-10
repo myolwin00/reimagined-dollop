@@ -19,8 +19,9 @@ interface YogaDao {
     @Query("select * from yoga_courses where id = :id")
     fun getCourseDetails(id: String): Flow<YogaCourseDetails?>
 
+    @Transaction
     @Query("select * from yoga_courses where id = :id")
-    suspend fun getCourse(id: String): YogaCourseEntity?
+    suspend fun getCourse(id: String): YogaCourseDetails?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCourse(vararg entity: YogaCourseEntity)
@@ -69,4 +70,8 @@ interface YogaDao {
 
     @Query("delete from yoga_class_teachers where classId = :classId")
     suspend fun deleteYogaClassTeacher(classId: String): Int
+
+    // yoga images
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertYogaImage(vararg entity: YogaImageEntity)
 }

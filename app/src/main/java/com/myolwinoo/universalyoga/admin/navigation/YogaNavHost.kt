@@ -20,6 +20,8 @@ import com.myolwinoo.universalyoga.admin.features.yogaclass.navigateToYogaClass
 import com.myolwinoo.universalyoga.admin.features.yogaclass.yogaClassScreen
 import com.myolwinoo.universalyoga.admin.usecase.SyncDataUseCase
 import com.myolwinoo.universalyoga.admin.utils.ConnectionChecker
+import com.myolwinoo.universalyoga.admin.utils.ImagePickerHelper
+import com.myolwinoo.universalyoga.admin.utils.LocationHelper
 
 private const val TIME_DURATION = 300
 
@@ -28,6 +30,8 @@ fun YogaNavHost(
     repo: YogaRepository,
     syncDataUseCase: SyncDataUseCase,
     connectionChecker: ConnectionChecker,
+    imagePickerHelper: ImagePickerHelper,
+    locationHelper: LocationHelper
 ) {
     val navController = rememberNavController()
 
@@ -84,6 +88,8 @@ fun YogaNavHost(
 
         createCourseScreen(
             repo = repo,
+            imagePickerHelper = imagePickerHelper,
+            locationHelper = locationHelper,
             onBack = navController::popBackStack
         )
 

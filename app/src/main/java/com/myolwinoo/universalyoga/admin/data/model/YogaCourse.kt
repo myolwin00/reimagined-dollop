@@ -19,5 +19,12 @@ data class YogaCourse(
 
     val cancellationPolicy: CancellationPolicy,
 
-    val classes: List<YogaClass>
+    val classes: List<YogaClass>,
+
+    val images: List<YogaImage>,
+
+    val eventType: YogaEventType,
+    val latitude: Double,
+    val longitude: Double,
+    val onlineUrl: String
 )

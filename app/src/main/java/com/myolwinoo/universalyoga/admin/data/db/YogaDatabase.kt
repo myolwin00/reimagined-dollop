@@ -8,6 +8,7 @@ import androidx.room.RoomDatabase
 @Database(
     entities = [
         YogaCourseEntity::class,
+        YogaImageEntity::class,
         YogaClassEntity::class,
         YogaTeacherEntity::class,
         YogaClassTeacherCrossRef::class

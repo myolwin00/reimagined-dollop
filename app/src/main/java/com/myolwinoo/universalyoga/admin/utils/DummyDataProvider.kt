@@ -6,6 +6,7 @@ import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
 import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
+import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
 import kotlinx.datetime.DayOfWeek
 import java.util.Random
 import java.util.UUID
@@ -29,7 +30,9 @@ object DummyDataProvider {
         for (i in 1..10) {
             val id = UUID.randomUUID().toString()
             val dayOfWeek = DayOfWeek.entries[random.nextInt(DayOfWeek.entries.size)]
-            val time = "${(9 + random.nextInt(6)).toString().padStart(2, '0')}:00" // Random time between 09:00 and 15:00
+            val time = "${
+                (9 + random.nextInt(6)).toString().padStart(2, '0')
+            }:00" // Random time between 09:00 and 15:00
             val capacity = 10 + random.nextInt(15)
             val duration = 60 + random.nextInt(30) // Duration in minutes (60 to 90)
             val pricePerClass = 15.0 + random.nextDouble() * 10.0 // Price between $15.0 and $25.0
@@ -37,8 +40,10 @@ object DummyDataProvider {
             val description = "A \"${typeOfClass.displayName}\" yoga class for ${
                 listOf("beginners", "all levels", "intermediate students")[random.nextInt(3)]
             }."
-            val difficultyLevel = DifficultyLevel.entries[random.nextInt(DifficultyLevel.entries.size)]
-            val cancellationPolicy = CancellationPolicy.entries[random.nextInt(CancellationPolicy.entries.size)]
+            val difficultyLevel =
+                DifficultyLevel.entries[random.nextInt(DifficultyLevel.entries.size)]
+            val cancellationPolicy =
+                CancellationPolicy.entries[random.nextInt(CancellationPolicy.entries.size)]
             val targetAudience = TargetAudience.entries[random.nextInt(TargetAudience.entries.size)]
 
             val classes = generateSampleYogaClasses()
@@ -56,7 +61,12 @@ object DummyDataProvider {
                     difficultyLevel = difficultyLevel,
                     cancellationPolicy = cancellationPolicy,
                     targetAudience = targetAudience,
-                    classes = classes
+                    classes = classes,
+                    images = emptyList(),
+                    eventType = YogaEventType.ONLINE,
+                    onlineUrl = "",
+                    latitude = 0.0,
+                    longitude = 0.0
                 )
             )
         }

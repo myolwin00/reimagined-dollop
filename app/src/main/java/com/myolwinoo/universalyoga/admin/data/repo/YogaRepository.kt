@@ -6,9 +6,11 @@ import com.myolwinoo.universalyoga.admin.data.db.YogaClassTeacherCrossRef
 import com.myolwinoo.universalyoga.admin.data.db.YogaCourseDetails
 import com.myolwinoo.universalyoga.admin.data.db.YogaCourseEntity
 import com.myolwinoo.universalyoga.admin.data.db.YogaDao
+import com.myolwinoo.universalyoga.admin.data.db.YogaImageEntity
 import com.myolwinoo.universalyoga.admin.data.db.YogaTeacherEntity
 import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
+import com.myolwinoo.universalyoga.admin.data.model.YogaImage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -50,8 +52,20 @@ class YogaRepository(
             difficultyLevel = course.difficultyLevel,
             cancellationPolicy = course.cancellationPolicy,
             targetAudience = course.targetAudience,
+            eventType = course.eventType,
+            latitude = course.latitude,
+            longitude = course.longitude,
+            onlineUrl = course.onlineUrl
         )
+        val imageEntities = course.images.map {
+            YogaImageEntity(
+                id = it.id,
+                courseId = it.courseId,
+                base64 = it.base64
+            )
+        }
         return try {
+            yogaDao.insertYogaImage(*imageEntities.toTypedArray())
             yogaDao.insertCourse(entity)
             Result.success(Unit)
         } catch (t: Throwable) {
@@ -145,7 +159,19 @@ class YogaRepository(
             difficultyLevel = entity.course.difficultyLevel,
             cancellationPolicy = entity.course.cancellationPolicy,
             targetAudience = entity.course.targetAudience,
-            classes = entity.yogaClasses.map(::mapYogaClass)
+            classes = entity.yogaClasses.map(::mapYogaClass),
+            images = entity.images.map {
+                YogaImage(
+                    id = it.id,
+                    courseId = it.courseId,
+                    base64 = it.base64,
+                    bitmap = null
+                )
+            },
+            eventType = entity.course.eventType,
+            latitude = entity.course.latitude,
+            longitude = entity.course.longitude,
+            onlineUrl = entity.course.onlineUrl
         )
     }
 
@@ -162,7 +188,12 @@ class YogaRepository(
             difficultyLevel = entity.difficultyLevel,
             cancellationPolicy = entity.cancellationPolicy,
             targetAudience = entity.targetAudience,
-            classes = emptyList()
+            classes = emptyList(),
+            images = emptyList(),
+            eventType = entity.eventType,
+            latitude = entity.latitude,
+            longitude = entity.longitude,
+            onlineUrl = entity.onlineUrl
         )
     }
 }

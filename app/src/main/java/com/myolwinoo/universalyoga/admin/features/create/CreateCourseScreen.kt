@@ -2,9 +2,18 @@
 
 package com.myolwinoo.universalyoga.admin.features.create
 
+import android.content.Intent
 import android.content.res.Configuration
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,17 +27,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,14 +49,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -64,8 +77,12 @@ import com.myolwinoo.universalyoga.admin.data.model.CancellationPolicy
 import com.myolwinoo.universalyoga.admin.data.model.DifficultyLevel
 import com.myolwinoo.universalyoga.admin.data.model.TargetAudience
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
+import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
+import com.myolwinoo.universalyoga.admin.data.model.YogaImage
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
+import com.myolwinoo.universalyoga.admin.utils.ImagePickerHelper
+import com.myolwinoo.universalyoga.admin.utils.LocationHelper
 import kotlinx.datetime.DayOfWeek
 import kotlinx.serialization.Serializable
 import java.time.format.TextStyle
@@ -80,17 +97,46 @@ fun NavController.navigateToCreateCourse(courseId: String? = null) {
 
 fun NavGraphBuilder.createCourseScreen(
     repo: YogaRepository,
+    imagePickerHelper: ImagePickerHelper,
+    locationHelper: LocationHelper,
     onBack: () -> Unit,
 ) {
-
     composable<CreateCourseRoute> {
         val route = it.toRoute<CreateCourseRoute>()
+
         val viewModel: CreateCourseScreenViewModel = viewModel(
             factory = CreateCourseScreenViewModel.Factory(
+                courseId = route.courseId,
                 repo = repo,
-                courseId = route.courseId
+                imagePickerHelper = imagePickerHelper,
+                locationHelper = locationHelper
             )
         )
+        val cameraLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                imagePickerHelper.currentPhotoUri?.let {
+                    viewModel.addImage(it)
+                }
+            }
+        val photoPickerLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                uri?.let {
+                    viewModel.addImage(it)
+                }
+            }
+
+        val locationPermissionRequestLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            when {
+                permissions.getOrDefault(android.Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
+                    viewModel.useCurrentLocation()
+                }
+                permissions.getOrDefault(android.Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
+                    viewModel.useCurrentLocation()
+                }
+            }
+        }
 
         LaunchedEffect(viewModel.navigateToHome.value) {
             if (viewModel.navigateToHome.value) {
@@ -137,7 +183,41 @@ fun NavGraphBuilder.createCourseScreen(
             onCancellationPolicyChange = { viewModel.cancellationPolicy.value = it },
             onDismissSave = { viewModel.showConfirmSave = false },
             showConfirmSave = viewModel.showConfirmSave,
-            onConfirmSave = viewModel::create
+            onConfirmSave = viewModel::create,
+            images = viewModel.images,
+            onLaunchCamera = {
+                imagePickerHelper.createImageUri()?.let {
+                    cameraLauncher.launch(
+                        Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(MediaStore.EXTRA_OUTPUT, it)
+                        }
+                    )
+                }
+            },
+            onLaunchPhotoPicker = {
+                photoPickerLauncher.launch(
+                    PickVisualMediaRequest(
+                        ActivityResultContracts.PickVisualMedia.ImageOnly
+                    )
+                )
+            },
+            selectedEventType = viewModel.eventType,
+            onSelectedEventTypeChange = viewModel::updateEventType,
+            onRemoveImage = viewModel::removeImage,
+            latitude = viewModel.latitude,
+            onLatitudeChange = { viewModel.latitude = it },
+            longitude = viewModel.longitude,
+            onLongitudeChange = { viewModel.longitude = it },
+            onUseCurrentLocation = {
+                locationPermissionRequestLauncher.launch(
+                    arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            },
+            url = viewModel.url,
+            onUrlChange = { viewModel.url = it }
         )
     }
 }
@@ -170,7 +250,20 @@ private fun Screen(
     onCancellationPolicyChange: (CancellationPolicy) -> Unit,
     onBack: () -> Unit,
     onSave: () -> Unit,
-    onConfirmSave: () -> Unit
+    onConfirmSave: () -> Unit,
+    onLaunchCamera: () -> Unit,
+    onLaunchPhotoPicker: () -> Unit,
+    images: List<YogaImage>,
+    onRemoveImage: (String) -> Unit,
+    selectedEventType: YogaEventType,
+    onSelectedEventTypeChange: (YogaEventType) -> Unit,
+    latitude: TextFieldValue,
+    onLatitudeChange: (TextFieldValue) -> Unit,
+    longitude: TextFieldValue,
+    onLongitudeChange: (TextFieldValue) -> Unit,
+    onUseCurrentLocation: () -> Unit,
+    url: TextFieldValue,
+    onUrlChange: (TextFieldValue) -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
@@ -321,16 +414,14 @@ private fun Screen(
             ) {
                 item {
                     Column {
+                        Spacer(Modifier.size(8.dp))
                         SectionTitle(
                             title = "Schedule"
                         )
                         Spacer(Modifier.size(8.dp))
                         ScheduleSection(
                             modifier = Modifier
-                                .padding(
-                                    start = 20.dp,
-                                    end = 20.dp
-                                )
+                                .padding(horizontal = 20.dp)
                                 .fillMaxWidth(),
                             selectedDayOfWeek = selectedDayOfWeek,
                             onDayOfWeekSelected = onDayOfWeekSelected,
@@ -391,12 +482,44 @@ private fun Screen(
                             onCancellationPolicyChange = onCancellationPolicyChange,
                             inputError = inputError
                         )
-                        Spacer(
-                            Modifier
-                                .imePadding()
-                                .size(100.dp)
-                        )
+                        Spacer(Modifier.size(16.dp))
                     }
+                }
+
+                item {
+                    Column {
+                        SectionTitle(
+                            title = "More"
+                        )
+                        Spacer(Modifier.size(8.dp))
+                        ExtraSection(
+                            modifier = Modifier
+                                .padding(horizontal = 20.dp)
+                                .fillMaxWidth(),
+                            images = images,
+                            onLaunchCamera = onLaunchCamera,
+                            onLaunchPhotoPicker = onLaunchPhotoPicker,
+                            selectedEventType = selectedEventType,
+                            onSelectedEventTypeChange = onSelectedEventTypeChange,
+                            latitude = latitude,
+                            onLatitudeChange = onLatitudeChange,
+                            longitude = longitude,
+                            onLongitudeChange = onLongitudeChange,
+                            onUseCurrentLocation = onUseCurrentLocation,
+                            url = url,
+                            onUrlChange = onUrlChange,
+                            onRemoveImage = onRemoveImage
+                        )
+                        Spacer(Modifier.size(16.dp))
+                    }
+                }
+
+                item {
+                    Spacer(
+                        Modifier
+                            .imePadding()
+                            .size(100.dp)
+                    )
                 }
             }
 
@@ -459,6 +582,287 @@ private fun getAnnotatedString(
             append(label)
         }
         append(value)
+    }
+}
+
+@Composable
+fun ExtraSection(
+    modifier: Modifier = Modifier,
+    selectedEventType: YogaEventType,
+    onSelectedEventTypeChange: (YogaEventType) -> Unit,
+    images: List<YogaImage>,
+    onRemoveImage: (String) -> Unit,
+    onLaunchCamera: () -> Unit,
+    onLaunchPhotoPicker: () -> Unit,
+    latitude: TextFieldValue,
+    onLatitudeChange: (TextFieldValue) -> Unit,
+    longitude: TextFieldValue,
+    onLongitudeChange: (TextFieldValue) -> Unit,
+    onUseCurrentLocation: () -> Unit,
+    url: TextFieldValue,
+    onUrlChange: (TextFieldValue) -> Unit
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
+        ) {
+            SectionSubtitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = "Add Image"
+            )
+            if (images.isNotEmpty()) {
+                Spacer(Modifier.size(12.dp))
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .animateContentSize()
+            ) {
+                if (images.isNotEmpty()) {
+                    Spacer(Modifier.size(16.dp))
+                }
+                images.forEachIndexed { index, yogaImage ->
+                    if (index != 0) {
+                        Spacer(Modifier.size(8.dp))
+                    }
+                    Box(
+                        modifier = Modifier.size(100.dp),
+                    ) {
+                        yogaImage.bitmap?.asImageBitmap()?.let { bitmap ->
+                            Image(
+                                modifier = Modifier.fillMaxSize(),
+                                bitmap = bitmap,
+                                contentDescription = "image",
+                                contentScale = ContentScale.Crop
+                            )
+                        } ?: kotlin.run {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Gray),
+                            )
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.ic_delete),
+                            contentDescription = "delete",
+                            tint = MaterialTheme.colorScheme.onError,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .background(
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+                                    shape = RoundedCornerShape(bottomStartPercent = 50)
+                                )
+                                .padding(
+                                    start = 8.dp,
+                                    end = 4.dp,
+                                    top = 4.dp,
+                                    bottom = 4.dp
+                                )
+                                .clickable { onRemoveImage(yogaImage.id) }
+                                .size(24.dp)
+
+                        )
+                    }
+                }
+                if (images.isNotEmpty()) {
+                    Spacer(Modifier.size(16.dp))
+                }
+            }
+            Spacer(Modifier.size(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FilledTonalButton(onClick = onLaunchCamera) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_camera),
+                        contentDescription = null,
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text("Camera")
+                }
+                FilledTonalButton(onClick = onLaunchPhotoPicker) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_gallery),
+                        contentDescription = null,
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text("Gallery")
+                }
+            }
+
+            Spacer(Modifier.size(8.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(Modifier.size(8.dp))
+
+            SectionSubtitle(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                title = "Choose Location"
+            )
+
+            RadioOption(
+                modifier = Modifier
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 12.dp
+                    ),
+                label = "Unspecified",
+                selected = selectedEventType == YogaEventType.UNSPECIFIED,
+                onSelected = { onSelectedEventTypeChange(YogaEventType.UNSPECIFIED) }
+            )
+
+            InPersonLocationOption(
+                modifier = Modifier
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 12.dp
+                    ),
+                selected = selectedEventType == YogaEventType.IN_PERSON,
+                onSelected = { onSelectedEventTypeChange(YogaEventType.IN_PERSON) },
+                latitude = latitude,
+                onLatitudeChange = onLatitudeChange,
+                longitude = longitude,
+                onLongitudeChange = onLongitudeChange,
+                onUseCurrentLocation = onUseCurrentLocation
+            )
+            Spacer(Modifier.size(8.dp))
+            OnlineLocationOption(
+                modifier = Modifier
+                    .padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 12.dp
+                    ),
+                selected = selectedEventType == YogaEventType.ONLINE,
+                onSelected = { onSelectedEventTypeChange(YogaEventType.ONLINE) },
+                url = url,
+                onUrlChange = onUrlChange
+            )
+        }
+    }
+}
+
+@Composable
+private fun OnlineLocationOption(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    onSelected: () -> Unit,
+    url: TextFieldValue,
+    onUrlChange: (TextFieldValue) -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        RadioOption(
+            label = "Online Course",
+            selected = selected,
+            onSelected = onSelected
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth(),
+            enabled = selected,
+            value = url,
+            onValueChange = onUrlChange,
+            label = { Text("Meeting Url") },
+        )
+    }
+}
+
+@Composable
+private fun InPersonLocationOption(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    onSelected: () -> Unit,
+    latitude: TextFieldValue,
+    onLatitudeChange: (TextFieldValue) -> Unit,
+    longitude: TextFieldValue,
+    onLongitudeChange: (TextFieldValue) -> Unit,
+    onUseCurrentLocation: () -> Unit
+) {
+    Column(
+        modifier = modifier
+    ) {
+        RadioOption(
+            label = "In-Person Course",
+            selected = selected,
+            onSelected = onSelected
+        )
+        Spacer(modifier = Modifier.size(8.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .weight(1f),
+                enabled = selected,
+                value = latitude,
+                onValueChange = onLatitudeChange,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                label = { Text("Latitude") },
+            )
+            OutlinedTextField(
+                modifier = Modifier
+                    .weight(1f),
+                enabled = selected,
+                value = longitude,
+                onValueChange = onLongitudeChange,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                label = { Text("Longitude") },
+            )
+        }
+        Spacer(Modifier.size(8.dp))
+        FilledTonalButton(
+            enabled = selected,
+            onClick = onUseCurrentLocation
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_location),
+                contentDescription = null,
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text("Use Current Location")
+        }
+    }
+}
+
+@Composable
+private fun RadioOption(
+    modifier: Modifier = Modifier,
+    label: String,
+    selected: Boolean,
+    onSelected: () -> Unit,
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .selectable(
+                selected = selected,
+                onClick = onSelected,
+                role = Role.RadioButton
+            ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null // null recommended for accessibility with screenreaders
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
 
@@ -673,8 +1077,8 @@ fun PricingSection(
     }
 }
 
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ScheduleSectionPreview() {
     UniversalYogaTheme {
@@ -690,8 +1094,8 @@ private fun ScheduleSectionPreview() {
     }
 }
 
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DetailsSectionPreview() {
     UniversalYogaTheme {
@@ -708,8 +1112,8 @@ private fun DetailsSectionPreview() {
     }
 }
 
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Preview
+//@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PricingSectionPreview() {
     UniversalYogaTheme {
@@ -721,6 +1125,53 @@ private fun PricingSectionPreview() {
             cancellationPolicy = CancellationPolicy.STRICT,
             onCancellationPolicyChange = {},
             inputError = null
+        )
+    }
+}
+
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ExtraSectionPreview() {
+    UniversalYogaTheme {
+        ExtraSection(
+            images = listOf(
+                YogaImage(
+                    id = "",
+                    bitmap = null,
+                    courseId = "",
+                    base64 = ""
+                ),
+                YogaImage(
+                    id = "",
+                    bitmap = null,
+                    courseId = "",
+                    base64 = ""
+                ),
+                YogaImage(
+                    id = "",
+                    bitmap = null,
+                    courseId = "",
+                    base64 = ""
+                ),
+                YogaImage(
+                    id = "",
+                    bitmap = null,
+                    courseId = "",
+                    base64 = ""
+                )
+            ),
+            onLaunchCamera = {},
+            onLaunchPhotoPicker = {},
+            selectedEventType = YogaEventType.IN_PERSON,
+            onSelectedEventTypeChange = {},
+            onRemoveImage = {},
+            latitude = TextFieldValue(),
+            onLatitudeChange = {},
+            longitude = TextFieldValue(),
+            onLongitudeChange = {},
+            onUseCurrentLocation = {},
+            url = TextFieldValue(),
+            onUrlChange = {}
         )
     }
 }

@@ -37,6 +37,7 @@ interface YogaDao {
     @Query("select * from yoga_classes where courseid = :courseId")
     fun getClasses(courseId: String): Flow<List<YogaClassDetails>>
 
+    @Transaction
     @Query("select * from yoga_classes where classId = :classId")
     suspend fun getClass(classId: String): YogaClassDetails?
 

@@ -18,12 +18,14 @@ import com.myolwinoo.universalyoga.admin.features.yogaclass.create.createYogaCla
 import com.myolwinoo.universalyoga.admin.features.yogaclass.create.navigateToCreateYogaClass
 import com.myolwinoo.universalyoga.admin.features.yogaclass.navigateToYogaClass
 import com.myolwinoo.universalyoga.admin.features.yogaclass.yogaClassScreen
+import com.myolwinoo.universalyoga.admin.usecase.SyncDataUseCase
 
 private const val TIME_DURATION = 300
 
 @Composable
 fun YogaNavHost(
-    repo: YogaRepository
+    repo: YogaRepository,
+    syncDataUseCase: SyncDataUseCase,
 ) {
     val navController = rememberNavController()
 
@@ -58,6 +60,7 @@ fun YogaNavHost(
 
         homeScreen(
             repo = repo,
+            syncDataUseCase = syncDataUseCase,
             onCreateCourseClick = { navController.navigateToCreateCourse() },
             onEditCourse = { navController.navigateToCreateCourse(it) },
             onManageClasses = navController::navigateToYogaClass,

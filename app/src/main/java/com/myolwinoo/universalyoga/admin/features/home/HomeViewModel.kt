@@ -1,26 +1,36 @@
 package com.myolwinoo.universalyoga.admin.features.home
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
-import kotlinx.coroutines.flow.Flow
+import com.myolwinoo.universalyoga.admin.usecase.SyncDataUseCase
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class HomeViewModel(
-    private val repo: YogaRepository
+    private val repo: YogaRepository,
+    private val syncDataUseCase: SyncDataUseCase
 ): ViewModel() {
 
-    val courses: Flow<List<YogaCourse>> = repo.getAllCourses()
+    val courses: StateFlow<List<YogaCourse>> = repo.getAllCourses()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     var confirmDeleteId = mutableStateOf<String?>(null)
         private set
 
     var confirmUpload = mutableStateOf(false)
         private set
+
+    var uploadError by mutableStateOf<Throwable?>(null)
+    var uploadSuccess by mutableStateOf(false)
 
     fun showConfirmDelete(id: String) {
         confirmDeleteId.value = id
@@ -44,12 +54,25 @@ class HomeViewModel(
         }
     }
 
-    fun uploadDataToServer() {
-
+    fun uploadDataToServer(skipEvents: Boolean = false) {
+        viewModelScope.launch {
+            syncDataUseCase.uploadToFireStore(courses.value)
+                .onSuccess {
+                    if (!skipEvents) {
+                        uploadSuccess = true
+                    }
+                }
+                .onFailure { e ->
+                    if (!skipEvents) {
+                        uploadError = e
+                    }
+                }
+        }
     }
 
     class Factory(
-        private val repo: YogaRepository
+        private val repo: YogaRepository,
+        private val syncDataUseCase: SyncDataUseCase
     ):  ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
@@ -57,7 +80,8 @@ class HomeViewModel(
             extras: CreationExtras
         ): T {
             return HomeViewModel(
-                repo = repo
+                repo = repo,
+                syncDataUseCase = syncDataUseCase
             ) as T
         }
     }

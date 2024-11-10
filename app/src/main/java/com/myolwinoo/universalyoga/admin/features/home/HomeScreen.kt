@@ -27,6 +27,8 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +43,7 @@ import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
 import com.myolwinoo.universalyoga.admin.features.common.courseList
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
+import com.myolwinoo.universalyoga.admin.usecase.SyncDataUseCase
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 import kotlinx.serialization.Serializable
 
@@ -49,14 +52,41 @@ data object HomeRoute
 
 fun NavGraphBuilder.homeScreen(
     repo: YogaRepository,
+    syncDataUseCase: SyncDataUseCase,
     onNavigateToSearch: () -> Unit,
     onCreateCourseClick: () -> Unit,
     onEditCourse: (courseId: String) -> Unit,
     onManageClasses: (courseId: String) -> Unit
 ) {
     composable<HomeRoute> {
-        val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(repo))
+        val viewModel: HomeViewModel = viewModel(
+            factory = HomeViewModel.Factory(
+                repo = repo,
+                syncDataUseCase = syncDataUseCase
+            )
+        )
         val courses = viewModel.courses.collectAsStateWithLifecycle(emptyList())
+
+        if (viewModel.uploadSuccess) {
+            UploadResultPopup(
+                title = "Upload Successful",
+                message = "Your data has been successfully uploaded to the server.",
+                icon = painterResource(R.drawable.ic_success),
+                color = MaterialTheme.colorScheme.primary,
+                onDismiss = { viewModel.uploadSuccess = false }
+            )
+        }
+
+        viewModel.uploadError?.let {
+            UploadResultPopup(
+                title = "Upload Failed",
+                message = "An error occurred while uploading your data. Please try again later.",
+                icon = painterResource(R.drawable.ic_error),
+                color = MaterialTheme.colorScheme.error,
+                onDismiss = { viewModel.uploadError = null }
+            )
+        }
+
         Screen(
             courses = courses.value,
             onCreateCourseClick = onCreateCourseClick,
@@ -216,6 +246,33 @@ private fun UploadConfirmation(
             }
         )
     }
+}
+
+@Composable
+private fun UploadResultPopup(
+    title: String,
+    message: String,
+    icon: Painter,
+    color: Color,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("OK")
+            }
+        },
+        icon = {
+            Icon(
+                painter = icon,
+                contentDescription = "",
+                tint = color
+            )
+        },
+        title = { Text(title) },
+        text = { Text(message) }
+    )
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)

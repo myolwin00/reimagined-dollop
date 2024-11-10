@@ -15,10 +15,14 @@ class MainActivity : ComponentActivity() {
 
         val db = (application as YogaApp).yogaDb
         val repo = YogaRepository(db.yogaDao())
+        val syncDataUseCase = (application as YogaApp).syncDataUseCase
 
         setContent {
             UniversalYogaTheme {
-                YogaNavHost(repo)
+                YogaNavHost(
+                    repo = repo,
+                    syncDataUseCase = syncDataUseCase
+                )
             }
         }
     }

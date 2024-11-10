@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,10 +54,15 @@ import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
+import com.myolwinoo.universalyoga.admin.features.common.SearchFilters
 import com.myolwinoo.universalyoga.admin.features.common.yogaClassList
 import com.myolwinoo.universalyoga.admin.features.yogaclass.OnEditClass
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
+import kotlinx.datetime.DayOfWeek
 import kotlinx.serialization.Serializable
+import java.time.LocalDate
+import java.time.format.TextStyle
+import kotlin.text.format
 
 @Serializable
 data object SearchRoute
@@ -90,7 +96,11 @@ fun NavGraphBuilder.searchScreen(
             showConfirmDeleteId = viewModel.confirmDeleteId.value,
             onShowConfirmDelete = viewModel::showConfirmDelete,
             onHideConfirmDelete = viewModel::hideConfirmDelete,
-            onEditClass = onEditClass
+            onEditClass = onEditClass,
+            dateFilter = viewModel.dateFilter,
+            onDateFilterChange = viewModel::updateDateFilter,
+            dayFilter = viewModel.dayFilter,
+            onDayFilterChange = viewModel::updateDayFilter
         )
     }
 }
@@ -110,6 +120,10 @@ private fun Screen(
     onShowConfirmDelete: (classId: String) -> Unit,
     onHideConfirmDelete: () -> Unit,
     onEditClass: OnEditClass,
+    dateFilter: String? = null,
+    onDateFilterChange: (String?) -> Unit,
+    dayFilter: DayOfWeek? = null,
+    onDayFilterChange: (DayOfWeek?) -> Unit,
 ) {
     Scaffold(
         modifier = Modifier
@@ -175,7 +189,6 @@ private fun Screen(
                                     }
                                 } else null,
                                 singleLine = true,
-
                             )
                         }
                         AnimatedVisibility(
@@ -207,6 +220,26 @@ private fun Screen(
                                 }
                             }
                         }
+                        Column {
+                            Text(
+                                modifier = Modifier
+                                    .padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                                text = "Filters",
+                            )
+                            SearchFilters(
+                                dateFilter = dateFilter,
+                                onDateFilterChange = onDateFilterChange,
+                                dayFilter = dayFilter,
+                                onDayFilterChange = onDayFilterChange
+                            )
+                        }
+                        if (searchResult.isNotEmpty()) {
+                            Text(
+                                modifier = Modifier
+                                    .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 6.dp),
+                                text = "Search Result (${searchResult.size})",
+                            )
+                        }
                     }
                 }
                 yogaClassList(
@@ -226,7 +259,11 @@ private fun Screen(
                     text = if (query.text.isBlank()) {
                         "Search for a class by entering a teacher name."
                     } else {
-                        "We couldn't find any classes matching with the teacher name \"${query.text}\"."
+                        buildNoClassesFoundMessage(
+                            query = query,
+                            dateFilter = dateFilter,
+                            dayFilter = dayFilter
+                        )
                     },
                     textAlign = TextAlign.Center
                 )
@@ -234,6 +271,34 @@ private fun Screen(
         }
     }
 
+}
+
+private fun buildNoClassesFoundMessage(
+    query: TextFieldValue,
+    dateFilter: String?,
+    dayFilter: DayOfWeek?
+): String {
+    val message = StringBuilder("We couldn't find any classes")
+
+    if (query.text.isNotBlank()) {
+        message.append(" matching with the teacher name \"${query.text}\"")
+    }
+
+    val filters = mutableListOf<String>()
+    if (dateFilter != null) {
+        filters.add("date: $dateFilter")
+    }
+    if (dayFilter != null) {
+        filters.add("day: ${dayFilter.getDisplayName(TextStyle.FULL_STANDALONE, java.util.Locale.getDefault())}")
+    }
+
+    if (filters.isNotEmpty()) {
+        message.append(" with the following filters: ${filters.joinToString(", ")}")
+    }
+
+    message.append(".")
+
+    return message.toString()
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -253,7 +318,11 @@ private fun ScreenPreview() {
             showConfirmDeleteId = null,
             onShowConfirmDelete = {},
             onHideConfirmDelete = {},
-            onEditClass = { _, _ -> }
+            onEditClass = { _, _ -> },
+            dateFilter = null,
+            onDateFilterChange = {},
+            dayFilter = null,
+            onDayFilterChange = {}
         )
     }
 }

@@ -253,7 +253,10 @@ private fun Screen(
                         TextButton(onClick = onDismissSave) {
                             Text("Cancel")
                         }
-                        Button(onClick = onConfirmSave) {
+                        Button(onClick = {
+                            onDismissSave()
+                            onConfirmSave()
+                        }) {
                             Text("Save")
                         }
                     }

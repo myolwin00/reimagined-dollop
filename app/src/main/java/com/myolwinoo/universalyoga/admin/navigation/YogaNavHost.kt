@@ -19,6 +19,7 @@ import com.myolwinoo.universalyoga.admin.features.yogaclass.create.navigateToCre
 import com.myolwinoo.universalyoga.admin.features.yogaclass.navigateToYogaClass
 import com.myolwinoo.universalyoga.admin.features.yogaclass.yogaClassScreen
 import com.myolwinoo.universalyoga.admin.usecase.SyncDataUseCase
+import com.myolwinoo.universalyoga.admin.utils.ConnectionChecker
 
 private const val TIME_DURATION = 300
 
@@ -26,6 +27,7 @@ private const val TIME_DURATION = 300
 fun YogaNavHost(
     repo: YogaRepository,
     syncDataUseCase: SyncDataUseCase,
+    connectionChecker: ConnectionChecker,
 ) {
     val navController = rememberNavController()
 
@@ -61,6 +63,7 @@ fun YogaNavHost(
         homeScreen(
             repo = repo,
             syncDataUseCase = syncDataUseCase,
+            connectionChecker = connectionChecker,
             onCreateCourseClick = { navController.navigateToCreateCourse() },
             onEditCourse = { navController.navigateToCreateCourse(it) },
             onManageClasses = navController::navigateToYogaClass,

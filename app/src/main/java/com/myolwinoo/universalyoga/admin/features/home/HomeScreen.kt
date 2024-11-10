@@ -1,12 +1,24 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 
 package com.myolwinoo.universalyoga.admin.features.home
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
@@ -24,7 +36,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +59,7 @@ import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
 import com.myolwinoo.universalyoga.admin.features.common.courseList
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.usecase.SyncDataUseCase
+import com.myolwinoo.universalyoga.admin.utils.ConnectionChecker
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 import kotlinx.serialization.Serializable
 
@@ -53,6 +69,7 @@ data object HomeRoute
 fun NavGraphBuilder.homeScreen(
     repo: YogaRepository,
     syncDataUseCase: SyncDataUseCase,
+    connectionChecker: ConnectionChecker,
     onNavigateToSearch: () -> Unit,
     onCreateCourseClick: () -> Unit,
     onEditCourse: (courseId: String) -> Unit,
@@ -66,6 +83,7 @@ fun NavGraphBuilder.homeScreen(
             )
         )
         val courses = viewModel.courses.collectAsStateWithLifecycle(emptyList())
+        var showNoConnectionDialog by remember { mutableStateOf(false) }
 
         if (viewModel.uploadSuccess) {
             UploadResultPopup(
@@ -87,8 +105,23 @@ fun NavGraphBuilder.homeScreen(
             )
         }
 
+        if (showNoConnectionDialog) {
+            UploadResultPopup(
+                title = "No Internet Connection",
+                message = "Please check your internet connection and try again.",
+                icon = painterResource(R.drawable.ic_sync_inactive),
+                color = MaterialTheme.colorScheme.error,
+                onDismiss = { showNoConnectionDialog = false }
+            )
+        }
+
+        val isNetworkAvailable = connectionChecker.isConnectionAvailable
+            .collectAsStateWithLifecycle(null)
+
         Screen(
             courses = courses.value,
+            isNetworkAvailable = isNetworkAvailable.value,
+
             onCreateCourseClick = onCreateCourseClick,
             onEditCourse = onEditCourse,
             onManageClasses = onManageClasses,
@@ -101,8 +134,14 @@ fun NavGraphBuilder.homeScreen(
 
             onUpload = viewModel::uploadDataToServer,
             showConfirmUpload = viewModel.confirmUpload.value,
-            onShowConfirmUpload = viewModel::showConfirmUpload,
-            onHideConfirmUpload = viewModel::hideConfirmUpload
+            onHideConfirmUpload = viewModel::hideConfirmUpload,
+            onUploadClick = {
+                if (isNetworkAvailable.value == true) {
+                    viewModel.showConfirmUpload()
+                } else {
+                    showNoConnectionDialog = true
+                }
+            }
         )
     }
 }
@@ -110,6 +149,7 @@ fun NavGraphBuilder.homeScreen(
 @Composable
 private fun Screen(
     courses: List<YogaCourse>,
+    isNetworkAvailable: Boolean?,
     onCreateCourseClick: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onEditCourse: (courseId: String) -> Unit,
@@ -121,8 +161,8 @@ private fun Screen(
 
     onUpload: () -> Unit,
     showConfirmUpload: Boolean,
-    onShowConfirmUpload: () -> Unit,
-    onHideConfirmUpload: () -> Unit
+    onHideConfirmUpload: () -> Unit,
+    onUploadClick: () -> Unit
 ) {
 
     val listState = rememberLazyListState()
@@ -143,7 +183,7 @@ private fun Screen(
                     Text("All Courses" + if (courses.isEmpty()) "" else " (${courses.size})")
                 },
                 actions = {
-                    IconButton(onClick = onShowConfirmUpload) {
+                    IconButton(onClick = onUploadClick) {
                         Icon(
                             painter = painterResource(R.drawable.ic_upload),
                             contentDescription = "upload button"
@@ -187,10 +227,61 @@ private fun Screen(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
                     bottom = innerPadding.calculateBottomPadding() + 100.dp
                 )
             ) {
+                stickyHeader {
+                    Box(
+                        modifier = Modifier
+                            .padding(top = innerPadding.calculateTopPadding())
+                            .animateContentSize()
+                    ) {
+                        AnimatedVisibility(
+                            visible = isNetworkAvailable != null,
+                            enter = slideInVertically() + fadeIn(),
+                            exit = slideOutVertically() + fadeOut()
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .background(
+                                        if (isNetworkAvailable == true) {
+                                            MaterialTheme.colorScheme.primaryContainer
+                                        } else {
+                                            MaterialTheme.colorScheme.errorContainer
+                                        }
+                                    )
+                                    .padding(
+                                        horizontal = 20.dp,
+                                        vertical = 4.dp
+                                    )
+                                    .fillMaxWidth()
+                            ) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (isNetworkAvailable == true) {
+                                            R.drawable.ic_sync_active
+                                        } else {
+                                            R.drawable.ic_sync_inactive
+                                        }
+                                    ),
+                                    contentDescription = "sync icon",
+                                    modifier = Modifier
+                                        .padding(top = 4.dp)
+                                        .size(20.dp)
+                                )
+                                Text(
+                                    text = if (isNetworkAvailable == true) {
+                                        "Network connection available. Your data will be synced automatically."
+                                    } else {
+                                        "Network connection unavailable. Your data will not be synced automatically."
+                                    },
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
+                }
                 courseList(
                     courses = courses,
                     onEditCourse = onEditCourse,
@@ -281,6 +372,7 @@ private fun ScreenPreview() {
     UniversalYogaTheme {
         Screen(
             courses = DummyDataProvider.dummyYogaCourses,
+            isNetworkAvailable = true,
             onCreateCourseClick = {},
             onEditCourse = {},
             onManageClasses = {},
@@ -291,8 +383,8 @@ private fun ScreenPreview() {
             onHideConfirmDelete = {},
             onUpload = {},
             showConfirmUpload = true,
-            onShowConfirmUpload = {},
-            onHideConfirmUpload = {}
+            onHideConfirmUpload = {},
+            onUploadClick = {},
         )
     }
 }

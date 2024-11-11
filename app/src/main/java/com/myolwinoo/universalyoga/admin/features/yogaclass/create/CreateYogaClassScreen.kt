@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 
 package com.myolwinoo.universalyoga.admin.features.yogaclass.create
 
@@ -13,12 +13,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +31,8 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.InputChip
+import androidx.compose.material3.InputChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -101,6 +106,7 @@ fun NavGraphBuilder.createYogaClassScreen(
         Screen(
             classId = route.classId,
             dayOfWeek = viewModel.dayOfWeek,
+            teacherList = viewModel.teacherList,
             suggestions = suggestions.value,
             onBack = onBack,
             onSave = viewModel::createClass,
@@ -114,7 +120,9 @@ fun NavGraphBuilder.createYogaClassScreen(
             teacherName = viewModel.teacherName,
             onTeacherNameChange = viewModel::updateTeacherName,
             onSuggestionClicked = { viewModel.updateTeacherName(TextFieldValue(it, TextRange(it.length))) },
-            inputError = viewModel.inputError
+            inputError = viewModel.inputError,
+            onRemoveTeacher = viewModel::removeTeacher,
+            onAddTeacher = viewModel::addTeacher
         )
     }
 }
@@ -124,6 +132,9 @@ private fun Screen(
     classId: String?,
     inputError: ClassInputError?,
     suggestions: List<String>,
+    teacherList: List<String>,
+    onAddTeacher: () -> Unit,
+    onRemoveTeacher: (String) -> Unit,
     dayOfWeek: DayOfWeek,
     onBack: () -> Unit,
     onSave: () -> Unit,
@@ -172,6 +183,26 @@ private fun Screen(
                     modifier = Modifier
                         .animateContentSize()
                 ) {
+                    if (teacherList.isNotEmpty()) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            text = "Teachers",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    FlowRow(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        teacherList.forEach {
+                            TeacherItem(
+                                name = it,
+                                onRemove = onRemoveTeacher
+                            )
+                        }
+                    }
                     OutlinedTextField(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
@@ -181,7 +212,15 @@ private fun Screen(
                         singleLine = true,
                         label = { Text("Teacher Name") },
                         supportingText = { Text("Required*") },
-                        isError = inputError == ClassInputError.TeacherName
+                        isError = inputError == ClassInputError.TeacherName,
+                        trailingIcon = {
+                            IconButton(onClick = onAddTeacher) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_add_person),
+                                    contentDescription = "add teacher"
+                                )
+                            }
+                        }
                     )
                     AnimatedVisibility(
                         suggestions.isNotEmpty(),
@@ -253,6 +292,34 @@ private fun Screen(
     }
 }
 
+@Composable
+private fun TeacherItem(
+    modifier: Modifier = Modifier,
+    name: String,
+    onRemove: (String) -> Unit
+) {
+    InputChip(
+        modifier = modifier,
+        onClick = { onRemove(name) },
+        label = { Text(name) },
+        selected = true,
+        avatar = {
+            Icon(
+                painter = painterResource(R.drawable.ic_person),
+                contentDescription = "Localized description",
+                Modifier.size(InputChipDefaults.AvatarSize)
+            )
+        },
+        trailingIcon = {
+            Icon(
+                painter = painterResource(R.drawable.ic_clear),
+                contentDescription = "Localized description",
+                Modifier.size(InputChipDefaults.AvatarSize)
+            )
+        },
+    )
+}
+
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ScreenPreview() {
@@ -270,7 +337,10 @@ private fun ScreenPreview() {
             dayOfWeek = DayOfWeek.MONDAY,
             suggestions = listOf("Miss Rowena", "Sir Dumbledore", "Miss Marcie"),
             onSuggestionClicked = {},
-            inputError = null
+            inputError = null,
+            teacherList = listOf("Jon", "Rowena"),
+            onAddTeacher = {},
+            onRemoveTeacher = {}
         )
     }
 }

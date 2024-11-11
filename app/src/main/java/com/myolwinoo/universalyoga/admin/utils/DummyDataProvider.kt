@@ -112,18 +112,17 @@ fun generateSampleYogaClasses(): List<YogaClass> {
     for (i in 1..4) {
         val id = UUID.randomUUID().toString()
         val date = "19/11/2023"
-        val teacher = teachers[random.nextInt(teachers.size)]
         val comment = listOf(
-            "This class is designed for relaxation and stress relief. \n" +
-                    "It incorporates gentle movements, breathing exercises, and guided meditation. \n" +
+            "This class is designed for relaxation and stress relief. " +
+                    "It incorporates gentle movements, breathing exercises, and guided meditation. " +
                     "Wear comfortable clothing and bring a blanket for extra warmth during the final relaxation.",
-            "This class is physically challenging and is recommended for students with some yoga experience. \n" +
-                    "It will involve advanced poses and variations. \n" +
-                    "Listen to your body and take breaks when needed. \n" +
+            "This class is physically challenging and is recommended for students with some yoga experience. " +
+                    "It will involve advanced poses and variations. " +
+                    "Listen to your body and take breaks when needed. " +
                     "Please inform the instructor of any injuries or limitations before class.",
-            "This class emphasizes the flow and connection between poses. \n" +
-                    "It is a dynamic and invigorating practice that will build strength, flexibility, and stamina. \n" +
-                    "Be prepared to move and sweat! \n" +
+            "This class emphasizes the flow and connection between poses. " +
+                    "It is a dynamic and invigorating practice that will build strength, flexibility, and stamina. " +
+                    "Be prepared to move and sweat! " +
                     "Hydrate well before and after class."
         )[random.nextInt(3)]
 
@@ -131,10 +130,9 @@ fun generateSampleYogaClasses(): List<YogaClass> {
             YogaClass(
                 id = id,
                 date = date,
-                teacherName = teacher,
-                teacherId = "",
                 courseId = "",
-                comment = comment
+                comment = comment,
+                teachers = teachers,
             )
         )
     }

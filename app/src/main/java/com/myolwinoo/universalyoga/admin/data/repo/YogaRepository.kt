@@ -14,6 +14,7 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaImage
 import com.myolwinoo.universalyoga.admin.utils.ImageUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.UUID
 
 class YogaRepository(
     private val yogaDao: YogaDao,
@@ -95,25 +96,31 @@ class YogaRepository(
     }
 
     suspend fun createYogaClass(yogaClass: YogaClass): Result<Unit> {
-        val classEntity = YogaClassEntity(
-            classId = yogaClass.id,
-            date = yogaClass.date,
-            comment = yogaClass.comment,
-            courseId = yogaClass.courseId
-        )
         return try {
-            val teacherId = saveTeacherIfNotExists(
-                teacherId = yogaClass.teacherId,
-                teacherName = yogaClass.teacherName
-            )
-            yogaDao.insertClass(classEntity)
-            yogaDao.deleteYogaClassTeacher(yogaClass.id)
-            yogaDao.insertYogaClassTeacher(
-                YogaClassTeacherCrossRef(
+            // insert teachers to teacher table if they don't exist
+            val teacherIds = yogaClass.teachers.map { teacherName ->
+                saveTeacherIfNotExists(teacherName = teacherName)
+            }
+            // insert class information
+            yogaDao.insertClass(
+                YogaClassEntity(
                     classId = yogaClass.id,
-                    teacherId = teacherId
+                    date = yogaClass.date,
+                    comment = yogaClass.comment,
+                    courseId = yogaClass.courseId
                 )
             )
+            // clear old class teacher relations
+            yogaDao.deleteYogaClassTeacher(yogaClass.id)
+            // insert new class teacher relations
+            teacherIds.forEach { teacherId ->
+                yogaDao.insertYogaClassTeacher(
+                    YogaClassTeacherCrossRef(
+                        classId = yogaClass.id,
+                        teacherId = teacherId
+                    )
+                )
+            }
             Result.success(Unit)
         } catch (t: Throwable) {
             Result.failure(t)
@@ -121,15 +128,15 @@ class YogaRepository(
     }
 
     private suspend fun saveTeacherIfNotExists(
-        teacherId: String,
         teacherName: String
     ): String {
-        val teacherEntity = YogaTeacherEntity(
-            teacherId = teacherId,
-            name = teacherName
-        )
         return yogaDao.findTeacherByName(teacherName).let {
             if (it == null) {
+                val teacherId = UUID.randomUUID().toString()
+                val teacherEntity = YogaTeacherEntity(
+                    teacherId = teacherId,
+                    name = teacherName
+                )
                 yogaDao.insertTeacher(teacherEntity)
                 teacherId
             } else {
@@ -143,8 +150,7 @@ class YogaRepository(
             id = classDetails.yogaClass.classId,
             date = classDetails.yogaClass.date,
             comment = classDetails.yogaClass.comment,
-            teacherId = classDetails.teachers.firstOrNull()?.teacherId.orEmpty(),
-            teacherName = classDetails.teachers.firstOrNull()?.name.orEmpty(),
+            teachers = classDetails.teachers.map { it.name },
             courseId = classDetails.yogaClass.courseId
         )
     }

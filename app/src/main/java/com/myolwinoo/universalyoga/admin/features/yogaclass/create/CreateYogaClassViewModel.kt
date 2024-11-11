@@ -39,6 +39,9 @@ class CreateYogaClassViewModel(
         private set
     private val teacherNameFlow = MutableStateFlow("")
 
+    var teacherList by mutableStateOf<List<String>>(emptyList())
+        private set
+
     var date by mutableStateOf(TextFieldValue())
     var comment by mutableStateOf(TextFieldValue())
 
@@ -66,7 +69,7 @@ class CreateYogaClassViewModel(
             classId
                 ?.let { repo.getYogaClass(it) }
                 ?.also {
-                    teacherName = TextFieldValue(it.teacherName, TextRange(it.teacherName.length))
+                    teacherList = it.teachers
                     date = TextFieldValue(it.date, TextRange(it.date.length))
                     comment = TextFieldValue(it.comment, TextRange(it.comment.length))
                 }
@@ -77,6 +80,15 @@ class CreateYogaClassViewModel(
         teacherName = query
         teacherNameFlow.value = query.text
         resetInputError()
+    }
+
+    fun addTeacher() {
+        teacherList = teacherList + teacherName.text.trim()
+        updateTeacherName(TextFieldValue())
+    }
+
+    fun removeTeacher(name: String) {
+        teacherList = teacherList.filter { it != name }
     }
 
     fun resetInputError() {
@@ -95,12 +107,8 @@ class CreateYogaClassViewModel(
                 YogaClass(
                     id = classId ?: UUID.randomUUID().toString(),
                     courseId = courseId,
-                    teacherId = _suggestions.value
-                        .find { it.second == teacherName.text }
-                        ?.first
-                        ?: UUID.randomUUID().toString(),
+                    teachers = teacherList,
                     date = date.text,
-                    teacherName = teacherName.text.trim(),
                     comment = comment.text.trim(),
                 )
             ).onSuccess {
@@ -110,7 +118,7 @@ class CreateYogaClassViewModel(
     }
 
     private fun validateInputs(): ClassInputError? {
-        if (teacherName.text.trim().isBlank()) {
+        if (teacherList.isEmpty()) {
             return ClassInputError.TeacherName
         }
         if (date.text.trim().isBlank()) {

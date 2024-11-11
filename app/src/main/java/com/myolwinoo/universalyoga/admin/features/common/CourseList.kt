@@ -224,7 +224,7 @@ private fun YogaClasses(
                 ) {
                     yogaClasses.take(4).forEach {
                         Text(
-                            text = "${it.date} by ${it.teacherName}",
+                            text = "${it.date} by ${it.teacherNames}",
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }

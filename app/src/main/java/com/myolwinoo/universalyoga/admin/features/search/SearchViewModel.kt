@@ -66,7 +66,9 @@ class SearchViewModel(
             emptyList()
         } else {
             yogaClasses.filter {
-                val nameContains = it.teacherName.contains(query, true)
+                val nameContains = it.teachers.any { teacherName ->
+                    teacherName.contains(query, true)
+                }
                 val dateMatches = dateFilter == null || it.date == dateFilter
                 val dayMatches = dayFiler == null || it.dayOfWeek == dayFiler
                 nameContains && dateMatches && dayMatches

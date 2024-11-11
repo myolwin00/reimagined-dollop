@@ -74,4 +74,7 @@ interface YogaDao {
     // yoga images
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertYogaImage(vararg entity: YogaImageEntity)
+
+    @Query("delete from yoga_images where courseId = :courseId")
+    suspend fun deleteYogaCourseImages(courseId: String): Int
 }

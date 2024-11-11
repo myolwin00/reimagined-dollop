@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
+import android.util.Log
 import androidx.core.content.FileProvider
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -13,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ImagePickerHelper(
+class ImageUtils(
     private val context: Context
 ) {
     var currentPhotoUri: Uri? = null
@@ -25,7 +26,7 @@ class ImagePickerHelper(
 
     fun createImageUri(): Uri? {
         val photoFile: File? = try {
-            createYogaImageFile()
+            createImageFile()
         } catch (ex: IOException) {
             null
         }
@@ -48,7 +49,7 @@ class ImagePickerHelper(
             val inputStream = context.contentResolver.openInputStream(imageUri)
             val bitmap = BitmapFactory.decodeStream(inputStream)
             val byteArrayOutputStream = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream)
             val byteArray = byteArrayOutputStream.toByteArray()
             Base64.encodeToString(byteArray, Base64.DEFAULT)
         } catch (e: Exception) {
@@ -68,7 +69,7 @@ class ImagePickerHelper(
     }
 
     @Throws(IOException::class)
-    private fun createYogaImageFile(): File {
+    private fun createImageFile(): File {
         // Create an image file name
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
             .format(Date())

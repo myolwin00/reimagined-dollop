@@ -81,7 +81,7 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
 import com.myolwinoo.universalyoga.admin.data.model.YogaImage
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
-import com.myolwinoo.universalyoga.admin.utils.ImagePickerHelper
+import com.myolwinoo.universalyoga.admin.utils.ImageUtils
 import com.myolwinoo.universalyoga.admin.utils.LocationHelper
 import kotlinx.datetime.DayOfWeek
 import kotlinx.serialization.Serializable
@@ -97,7 +97,7 @@ fun NavController.navigateToCreateCourse(courseId: String? = null) {
 
 fun NavGraphBuilder.createCourseScreen(
     repo: YogaRepository,
-    imagePickerHelper: ImagePickerHelper,
+    imageUtils: ImageUtils,
     locationHelper: LocationHelper,
     onBack: () -> Unit,
 ) {
@@ -108,13 +108,13 @@ fun NavGraphBuilder.createCourseScreen(
             factory = CreateCourseScreenViewModel.Factory(
                 courseId = route.courseId,
                 repo = repo,
-                imagePickerHelper = imagePickerHelper,
+                imageUtils = imageUtils,
                 locationHelper = locationHelper
             )
         )
         val cameraLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                imagePickerHelper.currentPhotoUri?.let {
+                imageUtils.currentPhotoUri?.let {
                     viewModel.addImage(it)
                 }
             }
@@ -186,7 +186,7 @@ fun NavGraphBuilder.createCourseScreen(
             onConfirmSave = viewModel::create,
             images = viewModel.images,
             onLaunchCamera = {
-                imagePickerHelper.createImageUri()?.let {
+                imageUtils.createImageUri()?.let {
                     cameraLauncher.launch(
                         Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                             putExtra(MediaStore.EXTRA_OUTPUT, it)
@@ -338,6 +338,22 @@ private fun Screen(
                         label = "Cancellation Policy: ",
                         value = cancellationPolicy.displayName
                     )
+                    Spacer(Modifier.size(8.dp))
+                    HorizontalDivider()
+                    Spacer(Modifier.size(8.dp))
+                    ConfirmationInfo(
+                        label = "Images: ",
+                        value = if (images.isNotEmpty()) {
+                            "${images.size} images"
+                        } else {
+                            "No images"
+                        }
+                    )
+                    ConfirmationInfo(
+                        label = "Location: ",
+                        value = selectedEventType.displayName
+                    )
+
                     Spacer(Modifier.size(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),

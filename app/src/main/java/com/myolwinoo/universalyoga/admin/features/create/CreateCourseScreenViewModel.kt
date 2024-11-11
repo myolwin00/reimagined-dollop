@@ -18,7 +18,7 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
 import com.myolwinoo.universalyoga.admin.data.model.YogaImage
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
-import com.myolwinoo.universalyoga.admin.utils.ImagePickerHelper
+import com.myolwinoo.universalyoga.admin.utils.ImageUtils
 import com.myolwinoo.universalyoga.admin.utils.LocationHelper
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DayOfWeek
@@ -27,7 +27,7 @@ import java.util.UUID
 class CreateCourseScreenViewModel(
     private val courseId: String? = null,
     private val repo: YogaRepository,
-    private val imagePickerHelper: ImagePickerHelper,
+    private val imageUtils: ImageUtils,
     private val locationHelper: LocationHelper,
 ) : ViewModel() {
 
@@ -76,11 +76,7 @@ class CreateCourseScreenViewModel(
                     targetAudience.value = it.targetAudience
                     cancellationPolicy.value = it.cancellationPolicy
 
-                    images = it.images.map {
-                        it.copy(
-                            bitmap = imagePickerHelper.base64ToBitmap(it.base64)
-                        )
-                    }
+                    images = it.images
 
                     eventType = it.eventType
                     url = TextFieldValue(it.onlineUrl, TextRange(it.onlineUrl.length))
@@ -108,8 +104,8 @@ class CreateCourseScreenViewModel(
                 YogaImage(
                     id = UUID.randomUUID().toString(),
                     courseId = "",
-                    bitmap = imagePickerHelper.createBitmap(uri),
-                    base64 = imagePickerHelper.imageUriToBase64(uri).orEmpty()
+                    bitmap = imageUtils.createBitmap(uri),
+                    base64 = imageUtils.imageUriToBase64(uri).orEmpty()
                 )
             )
         }
@@ -225,7 +221,7 @@ class CreateCourseScreenViewModel(
     class Factory(
         private val courseId: String? = null,
         private val repo: YogaRepository,
-        private val imagePickerHelper: ImagePickerHelper,
+        private val imageUtils: ImageUtils,
         private val locationHelper: LocationHelper,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -236,7 +232,7 @@ class CreateCourseScreenViewModel(
             return CreateCourseScreenViewModel(
                 courseId = courseId,
                 repo = repo,
-                imagePickerHelper = imagePickerHelper,
+                imageUtils = imageUtils,
                 locationHelper = locationHelper
             ) as T
         }

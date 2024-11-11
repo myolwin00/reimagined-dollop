@@ -183,13 +183,11 @@ private fun Screen(
                     Text("All Courses" + if (courses.isEmpty()) "" else " (${courses.size})")
                 },
                 actions = {
-                    if (courses.isNotEmpty()) {
-                        IconButton(onClick = onUploadClick) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_upload),
-                                contentDescription = "upload button"
-                            )
-                        }
+                    IconButton(onClick = onUploadClick) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_upload),
+                            contentDescription = "upload button"
+                        )
                     }
                     IconButton(onClick = onNavigateToSearch) {
                         Icon(

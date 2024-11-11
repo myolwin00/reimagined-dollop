@@ -11,11 +11,13 @@ import com.myolwinoo.universalyoga.admin.data.db.YogaTeacherEntity
 import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.model.YogaImage
+import com.myolwinoo.universalyoga.admin.utils.ImageUtils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class YogaRepository(
-    private val yogaDao: YogaDao
+    private val yogaDao: YogaDao,
+    private val imageUtils: ImageUtils
 ) {
 
     fun getAllCourses(): Flow<List<YogaCourse>> {
@@ -65,6 +67,7 @@ class YogaRepository(
             )
         }
         return try {
+            yogaDao.deleteYogaCourseImages(course.id)
             yogaDao.insertYogaImage(*imageEntities.toTypedArray())
             yogaDao.insertCourse(entity)
             Result.success(Unit)
@@ -165,7 +168,7 @@ class YogaRepository(
                     id = it.id,
                     courseId = it.courseId,
                     base64 = it.base64,
-                    bitmap = null
+                    bitmap = imageUtils.base64ToBitmap(it.base64)
                 )
             },
             eventType = entity.course.eventType,

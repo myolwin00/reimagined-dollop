@@ -15,21 +15,32 @@ class SyncDataUseCase(
 
     suspend fun start() {
         repo.getAllCourses()
-            .onEach { uploadToFireStore(it) }
+            .onEach { uploadToFireStore(it, false) }
             .collect()
     }
 
-    suspend fun uploadToFireStore(courses: List<YogaCourse>): Result<Unit> {
+    suspend fun uploadToFireStore(
+        courses: List<YogaCourse>,
+        reset: Boolean
+    ): Result<Unit> {
         return try {
-            // clear all document from firestore
-            val result = collection.get().await()
-            result.documents.forEach { doc ->
-                doc.reference.delete()
+            if (reset) {
+                // clear all document from firestore
+                val result = collection.get().await()
+                result.documents.forEach { doc ->
+                    doc.reference.delete()
+                }
             }
             // save all courses to firestore
             courses.forEach {
+                // ignore bitmap while uploading to firestore
+                val course = it.copy(
+                    images = it.images.map { image ->
+                        image.copy(bitmap = null)
+                    }
+                )
                 collection.document(it.id)
-                    .set(it)
+                    .set(course)
                     .await()
             }
             Result.success(Unit)

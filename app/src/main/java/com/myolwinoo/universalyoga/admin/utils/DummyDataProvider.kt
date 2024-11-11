@@ -7,6 +7,7 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
 import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
+import com.myolwinoo.universalyoga.admin.data.model.YogaImage
 import kotlinx.datetime.DayOfWeek
 import java.util.Random
 import java.util.UUID
@@ -62,7 +63,32 @@ object DummyDataProvider {
                     cancellationPolicy = cancellationPolicy,
                     targetAudience = targetAudience,
                     classes = classes,
-                    images = emptyList(),
+                    images = listOf(
+                        YogaImage(
+                            id = "",
+                            bitmap = null,
+                            courseId = "",
+                            base64 = ""
+                        ),
+                        YogaImage(
+                            id = "",
+                            bitmap = null,
+                            courseId = "",
+                            base64 = ""
+                        ),
+                        YogaImage(
+                            id = "",
+                            bitmap = null,
+                            courseId = "",
+                            base64 = ""
+                        ),
+                        YogaImage(
+                            id = "",
+                            bitmap = null,
+                            courseId = "",
+                            base64 = ""
+                        )
+                    ),
                     eventType = YogaEventType.ONLINE,
                     onlineUrl = "",
                     latitude = 0.0,
@@ -87,7 +113,7 @@ fun generateSampleYogaClasses(): List<YogaClass> {
 
     for (i in 1..4) {
         val id = UUID.randomUUID().toString()
-        val date = "2023-12-19"
+        val date = "19/11/2023"
         val teacher = teachers[random.nextInt(teachers.size)]
         val comment = listOf(
             "This class is designed for relaxation and stress relief. \n" +

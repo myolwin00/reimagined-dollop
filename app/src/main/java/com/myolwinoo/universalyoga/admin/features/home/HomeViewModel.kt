@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(
     private val repo: YogaRepository,
-    private val syncDataUseCase: SyncDataUseCase
-): ViewModel() {
+    private val syncDataUseCase: SyncDataUseCase,
+) : ViewModel() {
 
     val courses: StateFlow<List<YogaCourse>> = repo.getAllCourses()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
@@ -56,7 +56,7 @@ class HomeViewModel(
 
     fun uploadDataToServer(skipEvents: Boolean = false) {
         viewModelScope.launch {
-            syncDataUseCase.uploadToFireStore(courses.value)
+            syncDataUseCase.uploadToFireStore(courses.value, true)
                 .onSuccess {
                     if (!skipEvents) {
                         uploadSuccess = true
@@ -73,7 +73,7 @@ class HomeViewModel(
     class Factory(
         private val repo: YogaRepository,
         private val syncDataUseCase: SyncDataUseCase
-    ):  ViewModelProvider.Factory {
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(
             modelClass: Class<T>,
@@ -81,7 +81,7 @@ class HomeViewModel(
         ): T {
             return HomeViewModel(
                 repo = repo,
-                syncDataUseCase = syncDataUseCase
+                syncDataUseCase = syncDataUseCase,
             ) as T
         }
     }

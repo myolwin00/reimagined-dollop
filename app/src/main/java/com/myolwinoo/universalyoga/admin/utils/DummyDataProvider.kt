@@ -65,25 +65,25 @@ object DummyDataProvider {
                     classes = classes,
                     images = listOf(
                         YogaImage(
-                            id = "",
+                            id = UUID.randomUUID().toString(),
                             bitmap = null,
                             courseId = "",
                             base64 = ""
                         ),
                         YogaImage(
-                            id = "",
+                            id = UUID.randomUUID().toString(),
                             bitmap = null,
                             courseId = "",
                             base64 = ""
                         ),
                         YogaImage(
-                            id = "",
+                            id = UUID.randomUUID().toString(),
                             bitmap = null,
                             courseId = "",
                             base64 = ""
                         ),
                         YogaImage(
-                            id = "",
+                            id = UUID.randomUUID().toString(),
                             bitmap = null,
                             courseId = "",
                             base64 = ""

@@ -8,12 +8,8 @@ import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -51,10 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
@@ -80,7 +72,9 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
 import com.myolwinoo.universalyoga.admin.data.model.YogaImage
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
+import com.myolwinoo.universalyoga.admin.features.common.YogaImageList
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
+import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 import com.myolwinoo.universalyoga.admin.utils.ImageUtils
 import com.myolwinoo.universalyoga.admin.utils.LocationHelper
 import kotlinx.datetime.DayOfWeek
@@ -634,62 +628,11 @@ fun ExtraSection(
             if (images.isNotEmpty()) {
                 Spacer(Modifier.size(12.dp))
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .animateContentSize()
-            ) {
-                if (images.isNotEmpty()) {
-                    Spacer(Modifier.size(16.dp))
-                }
-                images.forEachIndexed { index, yogaImage ->
-                    if (index != 0) {
-                        Spacer(Modifier.size(8.dp))
-                    }
-                    Box(
-                        modifier = Modifier.size(100.dp),
-                    ) {
-                        yogaImage.bitmap?.asImageBitmap()?.let { bitmap ->
-                            Image(
-                                modifier = Modifier.fillMaxSize(),
-                                bitmap = bitmap,
-                                contentDescription = "image",
-                                contentScale = ContentScale.Crop
-                            )
-                        } ?: kotlin.run {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Gray),
-                            )
-                        }
-                        Icon(
-                            painter = painterResource(R.drawable.ic_delete),
-                            contentDescription = "delete",
-                            tint = MaterialTheme.colorScheme.onError,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(
-                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
-                                    shape = RoundedCornerShape(bottomStartPercent = 50)
-                                )
-                                .padding(
-                                    start = 8.dp,
-                                    end = 4.dp,
-                                    top = 4.dp,
-                                    bottom = 4.dp
-                                )
-                                .clickable { onRemoveImage(yogaImage.id) }
-                                .size(24.dp)
-
-                        )
-                    }
-                }
-                if (images.isNotEmpty()) {
-                    Spacer(Modifier.size(16.dp))
-                }
-            }
+            YogaImageList(
+                images = images,
+                enableDelete = true,
+                onRemoveImage = onRemoveImage
+            )
             Spacer(Modifier.size(8.dp))
             Row(
                 modifier = Modifier
@@ -1150,32 +1093,7 @@ private fun PricingSectionPreview() {
 private fun ExtraSectionPreview() {
     UniversalYogaTheme {
         ExtraSection(
-            images = listOf(
-                YogaImage(
-                    id = "",
-                    bitmap = null,
-                    courseId = "",
-                    base64 = ""
-                ),
-                YogaImage(
-                    id = "",
-                    bitmap = null,
-                    courseId = "",
-                    base64 = ""
-                ),
-                YogaImage(
-                    id = "",
-                    bitmap = null,
-                    courseId = "",
-                    base64 = ""
-                ),
-                YogaImage(
-                    id = "",
-                    bitmap = null,
-                    courseId = "",
-                    base64 = ""
-                )
-            ),
+            images = DummyDataProvider.dummyYogaCourses.first().images,
             onLaunchCamera = {},
             onLaunchPhotoPicker = {},
             selectedEventType = YogaEventType.IN_PERSON,

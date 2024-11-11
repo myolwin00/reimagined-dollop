@@ -2,6 +2,7 @@
 
 package com.myolwinoo.universalyoga.admin.features.create
 
+import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
 import android.provider.MediaStore
@@ -108,8 +109,10 @@ fun NavGraphBuilder.createCourseScreen(
         )
         val cameraLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-                imageUtils.currentPhotoUri?.let {
-                    viewModel.addImage(it)
+                if(it.resultCode == Activity.RESULT_OK) {
+                    imageUtils.currentPhotoUri?.let {
+                        viewModel.addImage(it)
+                    }
                 }
             }
         val photoPickerLauncher =

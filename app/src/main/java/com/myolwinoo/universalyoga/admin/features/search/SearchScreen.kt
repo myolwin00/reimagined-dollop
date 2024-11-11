@@ -241,7 +241,6 @@ private fun Screen(
                 }
                 yogaClassList(
                     yogaClasses = searchResult,
-                    horizontalItemSpacing = 20,
                     onEditClass = onEditClass,
                     onDeleteClass = onShowConfirmDelete,
                     onManageClasses = onManageClasses

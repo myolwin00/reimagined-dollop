@@ -33,7 +33,6 @@ import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 fun LazyListScope.yogaClassList(
     yogaClasses: List<YogaClass>,
     onEditClass: OnEditClass,
-    horizontalItemSpacing: Int = 0,
     onDeleteClass: (classId: String) -> Unit,
     onManageClasses: (courseId: String) -> Unit
 ) {
@@ -46,7 +45,6 @@ fun LazyListScope.yogaClassList(
         }
         YogaClassItem(
             modifier = Modifier
-                .padding(horizontal = horizontalItemSpacing.dp)
                 .clickable { onManageClasses(item.courseId) },
             yogaClass = item,
             onEditClass = onEditClass,

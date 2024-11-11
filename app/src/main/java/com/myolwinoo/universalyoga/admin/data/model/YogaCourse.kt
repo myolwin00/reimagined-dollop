@@ -1,6 +1,8 @@
 package com.myolwinoo.universalyoga.admin.data.model
 
 import kotlinx.datetime.DayOfWeek
+import java.text.DecimalFormat
+import kotlin.text.format
 
 data class YogaCourse(
     val id: String,
@@ -27,4 +29,14 @@ data class YogaCourse(
     val latitude: Double,
     val longitude: Double,
     val onlineUrl: String
-)
+) {
+    val displayPrice: String = let {
+        val decimalFormat = DecimalFormat("#.##")
+        val formattedValue = decimalFormat.format(pricePerClass)
+        if (formattedValue.endsWith(".00")) {
+            formattedValue.substring(0, formattedValue.length - 2)
+        } else {
+            formattedValue
+        }
+    }
+}

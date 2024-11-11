@@ -41,7 +41,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,13 +55,11 @@ import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import com.myolwinoo.universalyoga.admin.features.common.DeleteConfirmation
 import com.myolwinoo.universalyoga.admin.features.common.SearchFilters
 import com.myolwinoo.universalyoga.admin.features.common.yogaClassList
-import com.myolwinoo.universalyoga.admin.features.yogaclass.OnEditClass
+import com.myolwinoo.universalyoga.admin.features.course.detail.OnEditClass
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import kotlinx.datetime.DayOfWeek
 import kotlinx.serialization.Serializable
-import java.time.LocalDate
 import java.time.format.TextStyle
-import kotlin.text.format
 
 @Serializable
 data object SearchRoute

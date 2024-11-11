@@ -1,4 +1,4 @@
-package com.myolwinoo.universalyoga.admin.features.yogaclass
+package com.myolwinoo.universalyoga.admin.features.course.detail
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -8,7 +8,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.myolwinoo.universalyoga.admin.data.repo.YogaRepository
 import kotlinx.coroutines.launch
 
-class YogaClassViewModel(
+class CourseDetailViewModel(
     private val courseId: String,
     private val repo: YogaRepository
 ) : ViewModel() {
@@ -41,7 +41,7 @@ class YogaClassViewModel(
             modelClass: Class<T>,
             extras: CreationExtras
         ): T {
-            return YogaClassViewModel(
+            return CourseDetailViewModel(
                 courseId = courseId,
                 repo = repo
             ) as T

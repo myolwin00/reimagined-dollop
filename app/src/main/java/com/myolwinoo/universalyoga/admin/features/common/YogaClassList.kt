@@ -22,7 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.YogaClass
-import com.myolwinoo.universalyoga.admin.features.yogaclass.OnEditClass
+import com.myolwinoo.universalyoga.admin.features.course.detail.OnEditClass
 import com.myolwinoo.universalyoga.admin.ui.theme.UniversalYogaTheme
 import com.myolwinoo.universalyoga.admin.utils.DummyDataProvider
 

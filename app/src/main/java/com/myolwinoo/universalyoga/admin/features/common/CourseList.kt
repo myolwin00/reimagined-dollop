@@ -32,8 +32,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import com.myolwinoo.universalyoga.admin.R
 import com.myolwinoo.universalyoga.admin.data.model.YogaClass
 import com.myolwinoo.universalyoga.admin.data.model.YogaCourse
@@ -106,66 +108,20 @@ private fun CourseItem(
 
             Spacer(Modifier.size(8.dp))
 
-            Text(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                text = course.description.ifBlank { "No description." },
-                style = MaterialTheme.typography.bodyLarge
+            CourseInfo(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                course = course
             )
 
             Spacer(Modifier.size(8.dp))
 
-            FlowRow(
+            Text(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(R.drawable.ic_event),
-                        contentDescription = "day icon"
-                    )
-                    Text(text = course.dayOfWeek.getDisplayName(TextStyle.FULL_STANDALONE, Locale.getDefault()))
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(R.drawable.ic_time),
-                        contentDescription = "time icon"
-                    )
-                    Text(text = course.time)
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(R.drawable.ic_location),
-                        contentDescription = "location icon"
-                    )
-                    Text(text = course.eventType.displayName)
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(R.drawable.ic_group),
-                        contentDescription = "capacity icon"
-                    )
-                    Text(text = course.capacity.toString())
-                }
-            }
+                text = course.description.ifBlank { "No description." },
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
 
             Spacer(Modifier.size(8.dp))
 
@@ -235,17 +191,27 @@ private fun YogaClasses(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    modifier = Modifier.weight(1f),
-                    text = if (expanded) "Hide Classes (${yogaClasses.size})" else "Show Classes (${yogaClasses.size})",
+                    modifier = Modifier
+                        .weight(1f)
+                        .alignByBaseline(),
+                    text = "Classes (${yogaClasses.size})",
                     style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    modifier = Modifier
+                        .alignByBaseline(),
+                    text = if (expanded) "Hide" else "Show",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
                 IconButton(
                     modifier = Modifier.size(24.dp),
-                    onClick = { expanded = !expanded }
+                    onClick = { expanded = !expanded },
                 ) {
                     Icon(
                         painter = painterResource(if (expanded) R.drawable.ic_up else R.drawable.ic_down),
-                        contentDescription = "expand button"
+                        contentDescription = "expand button",
+                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }

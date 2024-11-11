@@ -36,11 +36,9 @@ object DummyDataProvider {
             }:00" // Random time between 09:00 and 15:00
             val capacity = 10 + random.nextInt(15)
             val duration = 60 + random.nextInt(30) // Duration in minutes (60 to 90)
-            val pricePerClass = 15.0 + random.nextDouble() * 10.0 // Price between $15.0 and $25.0
+            val pricePerClass = 15.242323
             val typeOfClass = YogaClassType.entries[random.nextInt(YogaClassType.entries.size)]
-            val description = "A \"${typeOfClass.displayName}\" yoga class for ${
-                listOf("beginners", "all levels", "intermediate students")[random.nextInt(3)]
-            }."
+            val description = "This yoga class is designed to nurture your mind, body, and spirit. We'll explore a variety of poses and breathing techniques to increase flexibility, strength, and balance. You'll learn to connect with your breath, quiet your mind, and cultivate a sense of inner peace. This class is suitable for all levels, from beginners to experienced practitioners. Join us on the mat and discover the transformative power of yoga."
             val difficultyLevel =
                 DifficultyLevel.entries[random.nextInt(DifficultyLevel.entries.size)]
             val cancellationPolicy =

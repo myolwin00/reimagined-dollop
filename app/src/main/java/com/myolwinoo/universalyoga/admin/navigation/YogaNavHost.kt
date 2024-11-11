@@ -16,8 +16,8 @@ import com.myolwinoo.universalyoga.admin.features.search.navigateToSearch
 import com.myolwinoo.universalyoga.admin.features.search.searchScreen
 import com.myolwinoo.universalyoga.admin.features.yogaclass.create.createYogaClassScreen
 import com.myolwinoo.universalyoga.admin.features.yogaclass.create.navigateToCreateYogaClass
-import com.myolwinoo.universalyoga.admin.features.yogaclass.navigateToYogaClass
-import com.myolwinoo.universalyoga.admin.features.yogaclass.yogaClassScreen
+import com.myolwinoo.universalyoga.admin.features.course.detail.navigateToCourseDetail
+import com.myolwinoo.universalyoga.admin.features.course.detail.courseDetailScreen
 import com.myolwinoo.universalyoga.admin.usecase.SyncDataUseCase
 import com.myolwinoo.universalyoga.admin.utils.ConnectionChecker
 import com.myolwinoo.universalyoga.admin.utils.ImageUtils
@@ -70,14 +70,14 @@ fun YogaNavHost(
             connectionChecker = connectionChecker,
             onCreateCourseClick = { navController.navigateToCreateCourse() },
             onEditCourse = { navController.navigateToCreateCourse(it) },
-            onManageClasses = navController::navigateToYogaClass,
+            onManageClasses = navController::navigateToCourseDetail,
             onNavigateToSearch = navController::navigateToSearch,
         )
 
         searchScreen(
             repo = repo,
             onBack = navController::popBackStack,
-            onManageClasses = navController::navigateToYogaClass,
+            onManageClasses = navController::navigateToCourseDetail,
             onEditClass = { classId, courseId ->
                 navController.navigateToCreateYogaClass(
                     classId = classId,
@@ -93,9 +93,10 @@ fun YogaNavHost(
             onBack = navController::popBackStack
         )
 
-        yogaClassScreen(
+        courseDetailScreen(
             repo = repo,
             onBack = navController::popBackStack,
+            onEditCourse = { navController.navigateToCreateCourse(it) },
             onCreateClass = { navController.navigateToCreateYogaClass(it) },
             onEditClass = { classId, courseId ->
                 navController.navigateToCreateYogaClass(

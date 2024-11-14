@@ -1,5 +1,8 @@
 package com.myolwinoo.universalyoga.admin.data.model;
 
+/**
+ * Represents the different cancellation policies for yoga classes.
+ */
 enum class CancellationPolicy(val displayName: String) {
     FLEXIBLE("Full refund if canceled 24 hours in advance"),
     MODERATE("50% refund if canceled 24 hours in advance"),

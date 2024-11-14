@@ -17,6 +17,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Get dependencies from the application class
         val yogaApp = application as YogaApp
         val repo = yogaApp.repo
         val imageUtils = yogaApp.imageUtils
@@ -40,11 +41,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
+        // Start network connection monitoring
         connectionChecker.start()
     }
 
     override fun onStop() {
         super.onStop()
+        // Stop network connection monitoring
         connectionChecker.stop()
     }
 }

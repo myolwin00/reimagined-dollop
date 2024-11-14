@@ -16,30 +16,51 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 
+/**
+ * Repository class for managing yoga data.
+ *
+ * This class provides methods for accessing and manipulating yoga courses, classes, teachers, and images.
+ * It interacts with the database through the [YogaDao] and handles image conversions using [ImageUtils].
+ */
 class YogaRepository(
     private val yogaDao: YogaDao,
     private val imageUtils: ImageUtils
 ) {
 
+    /**
+     * Retrieves all yoga courses as a flow.
+     */
     fun getAllCourses(): Flow<List<YogaCourse>> {
         return yogaDao.getAllCourses()
             .map { it.map(::mapYogaCourse) }
     }
 
+    /**
+     * Retrieves the details of a specific yoga course by its ID as a flow.
+     */
     fun getCourseDetails(courseId: String): Flow<YogaCourse?> {
         return yogaDao.getCourseDetails(courseId)
             .map { it?.let(::mapYogaCourse) }
     }
 
+    /**
+     * Retrieves a specific yoga course by its ID.
+     */
     suspend fun getCourse(courseId: String): YogaCourse? {
         return yogaDao.getCourse(courseId)?.let(::mapYogaCourse)
     }
 
+    /**
+     * Retrieves teacher name suggestions based on a given query as a flow.
+     */
     fun getTeacherNameSuggestions(teacherName: String): Flow<List<Pair<String, String>>> {
         return yogaDao.searchTeacher(teacherName)
             .map { it.map { teacher -> teacher.teacherId to teacher.name } }
     }
 
+    /**
+     * Creates a new yoga course or update if exists.
+     */
     suspend fun createCourse(
         course: YogaCourse
     ): Result<Unit> {
@@ -77,24 +98,39 @@ class YogaRepository(
         }
     }
 
+    /**
+     * Deletes a yoga course by its ID.
+     */
     suspend fun deleteCourse(courseId: String) {
         yogaDao.deleteCourseClass(courseId)
         yogaDao.deleteCourse(courseId)
     }
 
+    /**
+     * Retrieves all yoga classes as a flow.
+     */
     fun getAllYogaClasses(): Flow<List<YogaClass>> {
         return yogaDao.getAllClasses()
             .map { it.map(::mapYogaClass) }
     }
 
+    /**
+     * Deletes a yoga class by its ID.
+     */
     suspend fun deleteClass(classId: String) {
         yogaDao.deleteClass(classId)
     }
 
+    /**
+     * Retrieves a specific yoga class by its ID.
+     */
     suspend fun getYogaClass(classId: String): YogaClass? {
         return yogaDao.getClass(classId)?.let(::mapYogaClass)
     }
 
+    /**
+     * Creates a new yoga class if exists.
+     */
     suspend fun createYogaClass(yogaClass: YogaClass): Result<Unit> {
         return try {
             // insert teachers to teacher table if they don't exist
@@ -127,6 +163,9 @@ class YogaRepository(
         }
     }
 
+    /**
+     * Saves a teacher to the database if they don't already exist.
+     */
     private suspend fun saveTeacherIfNotExists(
         teacherName: String
     ): String {
@@ -145,6 +184,9 @@ class YogaRepository(
         }
     }
 
+    /**
+     * Maps a [YogaClassDetails] db object to a [YogaClass] domain object.
+     */
     fun mapYogaClass(classDetails: YogaClassDetails): YogaClass {
         return YogaClass(
             id = classDetails.yogaClass.classId,
@@ -155,6 +197,9 @@ class YogaRepository(
         )
     }
 
+    /**
+     * Maps a [YogaCourseDetails] db object to a [YogaCourse] domain object.
+     */
     fun mapYogaCourse(entity: YogaCourseDetails): YogaCourse {
         return YogaCourse(
             id = entity.course.id,
@@ -181,28 +226,6 @@ class YogaRepository(
             latitude = entity.course.latitude,
             longitude = entity.course.longitude,
             onlineUrl = entity.course.onlineUrl
-        )
-    }
-
-    fun mapYogaCourse(entity: YogaCourseEntity): YogaCourse {
-        return YogaCourse(
-            id = entity.id,
-            dayOfWeek = entity.dayOfWeek,
-            time = entity.time,
-            capacity = entity.capacity,
-            duration = entity.duration,
-            pricePerClass = entity.pricePerClass,
-            typeOfClass = entity.typeOfClass,
-            description = entity.description,
-            difficultyLevel = entity.difficultyLevel,
-            cancellationPolicy = entity.cancellationPolicy,
-            targetAudience = entity.targetAudience,
-            classes = emptyList(),
-            images = emptyList(),
-            eventType = entity.eventType,
-            latitude = entity.latitude,
-            longitude = entity.longitude,
-            onlineUrl = entity.onlineUrl
         )
     }
 }

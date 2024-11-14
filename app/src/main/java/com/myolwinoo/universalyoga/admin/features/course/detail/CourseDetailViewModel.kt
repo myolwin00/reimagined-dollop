@@ -13,8 +13,10 @@ class CourseDetailViewModel(
     private val repo: YogaRepository
 ) : ViewModel() {
 
+    // Exposes the details of the yoga course as a Flow, collecting from the repository.
     val course = repo.getCourseDetails(courseId)
 
+    // Holds the ID of the class to be deleted, if any.
     var confirmDeleteId = mutableStateOf<String?>(null)
         private set
 

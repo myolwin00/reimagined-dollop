@@ -1,5 +1,8 @@
 package com.myolwinoo.universalyoga.admin.data.model;
 
+/**
+ * Represents the different difficulty levels for yoga classes.
+ */
 enum class DifficultyLevel(val displayName: String) {
     BEGINNER("Beginner"),
     INTERMEDIATE("Intermediate"),

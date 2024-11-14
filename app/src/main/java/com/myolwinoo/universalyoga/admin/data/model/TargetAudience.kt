@@ -1,5 +1,8 @@
 package com.myolwinoo.universalyoga.admin.data.model;
 
+/**
+ * Represents the different target audiences for yoga classes.
+ */
 enum class TargetAudience(val displayName: String) {
     ADULTS("Adults"),
     SENIORS("Seniors"),

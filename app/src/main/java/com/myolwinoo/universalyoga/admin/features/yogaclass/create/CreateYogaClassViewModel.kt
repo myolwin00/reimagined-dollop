@@ -48,24 +48,31 @@ class CreateYogaClassViewModel(
     var dayOfWeek by mutableStateOf(DayOfWeek.MONDAY)
         private set
 
+    // Indicates whether the screen should navigate back to the previous screen.
     var navigateBack by mutableStateOf(false)
+    // Holds any input error that occurred during class creation.
     var inputError by mutableStateOf<ClassInputError?>(null)
 
+    // Provides a flow of teacher name suggestions based on the entered teacher name.
+    // Emits an empty list if the entered name is blank.
     private val _suggestions = teacherNameFlow
         .debounce(DEBOUNCE_MILLIS)
         .distinctUntilChanged()
         .flatMapLatest { if (it.isBlank()) flowOf(emptyList()) else repo.getTeacherNameSuggestions(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
+    // Exposes the teacher name suggestions as a StateFlow.
     val suggestions = _suggestions
         .map { it.map { (_, name) -> name } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     init {
         viewModelScope.launch {
+            // Fetch the day of the week from the course and update the state.
             repo.getCourse(courseId)?.dayOfWeek
                 ?.also { dayOfWeek = it }
 
+            // If classId is provided, fetch and populate class details for editing.
             classId
                 ?.let { repo.getYogaClass(it) }
                 ?.also {
@@ -95,6 +102,7 @@ class CreateYogaClassViewModel(
         inputError = null
     }
 
+    // Creates or updates the yoga class.
     fun createClass() {
         val error = validateInputs()
         if (error != null) {
@@ -117,6 +125,7 @@ class CreateYogaClassViewModel(
         }
     }
 
+    // Validates class inputs and returns an error if any are invalid.
     private fun validateInputs(): ClassInputError? {
         if (teacherList.isEmpty()) {
             return ClassInputError.TeacherName

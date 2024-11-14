@@ -49,11 +49,15 @@ class CreateCourseScreenViewModel(
     var longitude by mutableStateOf(TextFieldValue())
     var url by mutableStateOf(TextFieldValue())
 
+    // Indicates whether it should navigate back to home screen.
     val navigateToHome = mutableStateOf(false)
+    // Holds any input error that occurred during course creation.
     val inputError = mutableStateOf<CourseInputError?>(null)
+    // Indicates whether the save confirmation dialog should be shown.
     var showConfirmSave by mutableStateOf(false)
 
     init {
+        // If courseId is provided, fetch and populate course details for editing.
         viewModelScope.launch {
             courseId
                 ?.let { repo.getCourse(it) }
@@ -128,6 +132,7 @@ class CreateCourseScreenViewModel(
         }
     }
 
+    // Updates the event type and clears other inputs accordingly.
     fun updateEventType(eventType: YogaEventType) {
         this.eventType = eventType
         // clear other inputs when event type has changed
@@ -149,6 +154,7 @@ class CreateCourseScreenViewModel(
         }
     }
 
+    // Validates inputs and shows confirmation dialog if valid.
     fun onSave() {
         val error = validateInputs()
         if (error != null) {
@@ -158,6 +164,7 @@ class CreateCourseScreenViewModel(
         showConfirmSave = true
     }
 
+    // Creates or updates the yoga course.
     fun create() {
         viewModelScope.launch {
             val newCourseId = courseId ?: UUID.randomUUID().toString()
@@ -202,6 +209,7 @@ class CreateCourseScreenViewModel(
         inputError.value = null
     }
 
+    // Validates course inputs and returns an error if any are invalid.
     private fun validateInputs(): CourseInputError? {
         if (time.value.text.trim().isBlank()) {
             return CourseInputError.StartTime

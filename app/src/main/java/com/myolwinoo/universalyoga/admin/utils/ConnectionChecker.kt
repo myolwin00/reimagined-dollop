@@ -24,41 +24,84 @@ class ConnectionChecker(
         context.getSystemService<ConnectivityManager>()
     }
 
+    /**
+     * A [StateFlow] that emits the current network connection status.
+     *
+     * The flow emits `true` when a network connection is available, `false` when there is no
+     * connection, and `null` when the connection status is unknown.
+     */
     private val _isConnectionAvailable = MutableStateFlow<Boolean?>(null)
     val isConnectionAvailable: StateFlow<Boolean?> = _isConnectionAvailable
 
+    /**
+     * A [NetworkRequest] that specifies the desired network capabilities.
+     *
+     * This request is used to register the network callback with the connectivity manager.
+     */
     private val networkRequest = NetworkRequest.Builder()
         .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build()
 
+    /**
+     * A [ConnectivityManager.NetworkCallback] that listens for network changes.
+     *
+     * This callback updates the `_isConnectionAvailable` flow when the network connection
+     * status changes.
+     */
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+
+        /**
+         * Called when a network connection is available.
+         */
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
             _isConnectionAvailable.tryEmit(true)
         }
 
+        /**
+         * Called when a network connection is lost.
+         */
         override fun onLost(network: Network) {
             super.onLost(network)
             _isConnectionAvailable.tryEmit(false)
         }
 
+        /**
+         * Called when a network connection is unavailable.
+         */
         override fun onUnavailable() {
             super.onUnavailable()
             _isConnectionAvailable.tryEmit(false)
         }
     }
 
+    /**
+     * Starts monitoring the network connection status.
+     *
+     * This method registers the network callback with the connectivity manager and emits the
+     * initial connection status.
+     */
     fun start() {
         _isConnectionAvailable.tryEmit(isNetworkAvailable())
         connectivityManager?.registerNetworkCallback(networkRequest, networkCallback)
     }
 
+    /**
+     * Stops monitoring the network connection status.
+     *
+     * This method unregisters the network callback from the connectivity manager.
+     */
     fun stop() {
         connectivityManager?.unregisterNetworkCallback(networkCallback)
     }
 
+    /**
+     * Checks if a network connection is currently available.
+     *
+     * @return `true` if a network connection is available, `false` otherwise.
+     */
     fun isNetworkAvailable(): Boolean {
         val connectivityManager = connectivityManager ?: return false
         val network = connectivityManager.activeNetwork

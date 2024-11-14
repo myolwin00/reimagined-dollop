@@ -2,8 +2,10 @@ package com.myolwinoo.universalyoga.admin.data.model
 
 import kotlinx.datetime.DayOfWeek
 import java.text.DecimalFormat
-import kotlin.text.format
 
+/**
+ * Data class representing a yoga course.
+ */
 data class YogaCourse(
     val id: String,
 
@@ -30,6 +32,10 @@ data class YogaCourse(
     val longitude: Double,
     val onlineUrl: String
 ) {
+
+    /**
+     * Display price of the course, formatted with two decimal places.
+     */
     val displayPrice: String = let {
         val decimalFormat = DecimalFormat("#.##")
         val formattedValue = decimalFormat.format(pricePerClass)

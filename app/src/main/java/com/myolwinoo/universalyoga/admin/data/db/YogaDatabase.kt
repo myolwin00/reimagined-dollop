@@ -21,6 +21,12 @@ abstract class YogaDatabase : RoomDatabase() {
     companion object {
         private const val DATABASE_NAME = "yoga_db"
 
+        /**
+         * Creates and returns an instance of the database.
+         *
+         * @param applicationContext The application context.
+         * @return An instance of the database.
+         */
         fun getInstance(applicationContext: Context): YogaDatabase {
             return Room.databaseBuilder(
                 applicationContext,

@@ -1,5 +1,8 @@
 package com.myolwinoo.universalyoga.admin.data.model;
 
+/**
+ * Represents the different types of yoga classes.
+ */
 enum class YogaClassType(val displayName: String) {
     FLOW_YOGA("Flow Yoga"),
     AERIAL_YOGA("Aerial Yoga"),

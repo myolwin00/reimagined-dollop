@@ -10,6 +10,9 @@ import com.myolwinoo.universalyoga.admin.data.model.YogaClassType
 import com.myolwinoo.universalyoga.admin.data.model.YogaEventType
 import kotlinx.datetime.DayOfWeek
 
+/**
+ * Data class representing a yoga course entity in the database.
+ */
 @Entity(tableName = "yoga_courses")
 data class YogaCourseEntity(
     @PrimaryKey

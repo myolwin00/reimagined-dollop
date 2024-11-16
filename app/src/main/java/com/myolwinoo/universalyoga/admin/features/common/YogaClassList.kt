@@ -131,7 +131,7 @@ private fun YogaClassItem(
                         contentDescription = "delete button"
                     )
                     Spacer(modifier = Modifier.size(8.dp))
-                    Text(text = "Edit")
+                    Text(text = "Delete")
                 }
 
                 FilledTonalButton(onClick = { onEditClass(yogaClass.id, yogaClass.courseId) }) {

@@ -1,4 +1,6 @@
-# Project Setup
+# Setup Universal Yoga Admin App
+
+This guide provides instructions on opening the yoga admin Android project in Android Studio.
 
 ## 1. Keystore
 
